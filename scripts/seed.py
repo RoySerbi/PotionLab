@@ -736,6 +736,7 @@ def seed_admin_user(session: Session) -> int:
         )
         session.add(admin)
         session.commit()
+        session.refresh(admin)
         print("✓ Created admin user (username: admin, password: admin123)")
         return 1
     except IntegrityError:

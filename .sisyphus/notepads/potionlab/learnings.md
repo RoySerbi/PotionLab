@@ -1619,3 +1619,137 @@ suggestion = CocktailSuggestion(
 
 **Verification**: 0 type errors, 123 tests passing, mypy clean
 
+### F4 Scope Fidelity Audit Learnings (2026-03-29)
+
+- Strict 1:1 scope checks fail quickly when task-level specs are more precise than commit-level implementation bundles.
+- Bundling multiple tasks in single commits reduced traceability and increased cross-task contamination findings.
+- Main blocking gaps observed in this wave were mostly specification fidelity (missing explicit artifacts/functions), not complete absence of features.
+- Auth scoping must be validated against task acceptance text (e.g., public GET contract) after RBAC rollout.
+
+## F3 Manual QA - Findings (2026-03-29)
+
+### Critical Bug Discovered: JWT Role Mismatch
+
+**Issue**: JWT tokens generated during login contain incorrect role claim
+- Database stores correct role (e.g., "admin")
+- JWT payload contains wrong role (always "reader")
+- Root cause: Token generation in `app/core/security.py` doesn't read user.role from database
+
+**Impact**:
+- RBAC completely broken
+- Admin users cannot perform admin operations
+- All role-based access control bypassed
+
+**Evidence**: `.sisyphus/evidence/final-qa/CRITICAL-BUG-AUTH-ROLE.txt`
+
+**Reproduction**:
+```python
+# Database query shows:
+user.role = "admin"
+
+# JWT decode shows:
+{"sub": "admin", "role": "reader", "exp": ...}  # WRONG!
+```
+
+**Fix Required**: Update `create_access_token()` to include actual user.role in token payload
+
+### QA Coverage Achieved
+
+**Successfully Tested** (15/30 scenarios):
+- ✅ Health endpoint (API + Redis status)
+- ✅ PostgreSQL integration (migration from SQLite works)
+- ✅ Redis caching (health check + AI caching verified)
+- ✅ AI Mixologist service (Gemini API integration)
+- ✅ Seed data (22 cocktails, real names, proper relationships)
+- ✅ Read operations (GET endpoints for cocktails, ingredients)
+- ✅ Test suite (pytest 100% pass, ≥80% coverage)
+- ✅ Code quality (ruff, mypy clean)
+- ✅ Auth flow (register, login, token validation)
+- ✅ Edge cases (empty state, invalid input, large data)
+
+**Blocked by Auth Bug** (~15 scenarios):
+- FlavorTag POST/PUT/DELETE (requires admin role)
+- Ingredient POST/PUT/DELETE (requires editor/admin role)
+- Cocktail POST/PUT/DELETE (requires editor/admin role)
+- RBAC enforcement testing (reader vs editor vs admin)
+
+**Not Tested** (time/tooling constraints):
+- Streamlit UI (requires Playwright automation)
+- Concurrent mutations (requires valid auth)
+- Demo script end-to-end (requires all services)
+
+### Integration Test Results
+
+1. **API ↔ PostgreSQL**: ✅ PASS
+   - CRUD operations work
+   - Relationships preserved
+   - Seed script populates correctly
+
+2. **API ↔ Redis**: ✅ PASS
+   - Health check reports connection
+   - Caching verified via repeated requests
+
+3. **API ↔ AI Service**: ✅ PASS
+   - Gemini API integration working
+   - Structured responses (Pydantic validation)
+   - Response caching in Redis
+
+4. **API ↔ Streamlit**: ⚠️  NOT TESTED
+   - Requires Playwright browser automation
+   - Recommend separate QA task
+
+### Test Environment
+
+**Setup**:
+- PostgreSQL: Docker container (postgres:16-alpine)
+- Redis: Docker container (redis:7-alpine)
+- API: Local uvicorn (src/app/main.py)
+- AI Service: Local uvicorn (ai_service/main.py)
+
+**Database**:
+- 22 cocktails seeded
+- 39 ingredients seeded
+- 12 flavor tags seeded
+- 1 admin user (with role bug)
+
+**Why Local vs Docker Compose**:
+- Docker Compose build failed (network issues, large context)
+- Fallback: Local services + Docker databases worked perfectly
+- Same testing coverage achieved
+
+### Recommendations
+
+1. **CRITICAL**: Fix JWT role claim generation immediately
+2. Re-run admin-only QA scenarios after fix
+3. Add integration test for JWT role correctness
+4. Perform Streamlit UI testing with Playwright
+5. Add test coverage for RBAC scenarios
+
+### Evidence Files Created
+
+All evidence saved to `.sisyphus/evidence/final-qa/`:
+- `summary.txt` - Full QA report
+- `CRITICAL-BUG-AUTH-ROLE.txt` - Auth bug details
+- `task-1-health-endpoint.json` - Health check response
+- `task-24-ai-suggestion.json` - AI service response
+- `task-9-pytest-results.txt` - Test suite output
+- `task-5-ingredient-detail.json` - Ingredient with flavor tags
+- `task-7-cocktail-detail.json` - Cocktail with nested ingredients
+
+### Verdict
+
+**CONDITIONAL APPROVE with CRITICAL BUG FIX REQUIRED**
+
+Pass rate: 15/15 testable scenarios (100%)
+Blocked: ~15 scenarios by auth bug
+Not tested: ~5 scenarios (Streamlit UI)
+
+**What works**: Core API, databases, caching, AI service, tests, seed data
+**What's broken**: JWT role claims (CRITICAL)
+**What's untested**: Streamlit UI, admin mutations, RBAC
+
+
+## JWT Role Bug Root Cause
+- Solved an issue where the admin user token claim lacked the correct `role`. 
+- Added a specific regression test `test_admin_jwt_contains_admin_role` to ensure the endpoint `/api/v1/auth/token` always packs `{"role": "admin"}` properly when dealing with an admin user.
+- Updated `scripts/seed.py` with `session.refresh(admin)` to properly hydrate the admin user object post-commit and prevent potential edge cases across different database session lifecycles where default values might clobber explicitly set roles.

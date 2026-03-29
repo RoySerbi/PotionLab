@@ -219,3 +219,30 @@ def test_role_claim_embedded_in_admin_token(
         algorithms=[settings.jwt_algorithm],
     )
     assert payload["role"] == "admin"
+
+def test_admin_jwt_contains_admin_role(client: TestClient, session: Session) -> None:
+    """Verify admin user gets admin role in JWT token."""
+    from jose import jwt
+    from app.core.config import settings
+    
+    # Create admin user
+    admin = User(
+        username="test_admin",
+        hashed_password=hash_password("admin123"),
+        role="admin",
+    )
+    session.add(admin)
+    session.commit()
+    
+    # Login
+    response = client.post(
+        "/api/v1/auth/token",
+        json={"username": "test_admin", "password": "admin123"},
+    )
+    assert response.status_code == 200
+    token = response.json()["access_token"]
+    
+    # Decode token and verify role
+    payload = jwt.decode(token, settings.jwt_secret or "", algorithms=[settings.jwt_algorithm])
+    assert payload["role"] == "admin", f"Expected role='admin', got role='{payload['role']}'"
+    assert payload["sub"] == "test_admin"
