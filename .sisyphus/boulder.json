@@ -41,7 +41,13 @@
     "ses_2c4ac9865ffeuUih81waCDob7E",
     "ses_2c4aa7331ffe30DNXnbRPKZoVr",
     "ses_2c4ab5a5bffe6c0mfwYucnS2Hv",
-    "ses_2c4984d60ffeFZ5rb6TX3kZ8WM"
+    "ses_2c4984d60ffeFZ5rb6TX3kZ8WM",
+    "ses_2c488cf67ffeRkJDiFcjQtt3jB",
+    "ses_2c488e81fffeuUKUT3HkuZzlkk",
+    "ses_2c484fdb9ffeEZFhDuvSKiV2Ow",
+    "ses_2c47dae5dffegPr7YzlpfWRRA9",
+    "ses_2c473343affei7QPwIHMHbFKRg",
+    "ses_2c46b76c0ffeKKWIxHvcXT1XRL"
   ],
   "plan_name": "potionlab",
   "agent": "atlas",
@@ -221,10 +227,10 @@
       "task_key": "final-wave:f1",
       "task_label": "F1",
       "task_title": "**Plan Compliance Audit** — `oracle`",
-      "session_id": "ses_2c4984d60ffeFZ5rb6TX3kZ8WM",
+      "session_id": "ses_2c46b76c0ffeKKWIxHvcXT1XRL",
       "agent": "Sisyphus-Junior",
       "category": "ultrabrain",
-      "updated_at": "2026-03-29T21:12:37.325Z"
+      "updated_at": "2026-03-29T21:53:32.380Z"
     }
   }
 }

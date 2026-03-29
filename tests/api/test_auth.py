@@ -248,6 +248,7 @@ def test_role_claim_embedded_in_admin_token(
 def test_admin_jwt_contains_admin_role(client: TestClient, session: Session) -> None:
     """Verify admin user gets admin role in JWT token."""
     from jose import jwt
+
     from app.core.config import settings
 
     # Create admin user

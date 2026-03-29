@@ -1,10 +1,9 @@
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 
 from app.api.v1 import cocktails, flavor_tags, ingredients, routes_auth
 from app.core.config import settings
-from app.core.security import require_auth
 from app.db.session import init_db
 
 
