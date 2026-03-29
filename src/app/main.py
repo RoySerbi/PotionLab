@@ -26,6 +26,6 @@ app.include_router(cocktails.router, prefix="/api/v1")
 
 
 @app.get("/health")
-async def health_check():
+async def health_check() -> dict[str, str]:
     """Health endpoint for liveness checks."""
     return {"status": "ok"}
