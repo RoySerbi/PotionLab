@@ -1,0 +1,237 @@
+[
+  {
+    "name": "Negroni",
+    "difficulty": 1,
+    "instructions": "Stir gin, Campari, and sweet vermouth with ice. Strain into a rocks glass over ice. Garnish with orange peel.",
+    "ingredients": [
+      {"name": "Gin", "amount": "1 oz"},
+      {"name": "Campari", "amount": "1 oz"},
+      {"name": "Sweet Vermouth", "amount": "1 oz"},
+      {"name": "Orange Peel", "amount": "1"}
+    ]
+  },
+  {
+    "name": "Martini",
+    "difficulty": 2,
+    "instructions": "Stir gin and dry vermouth with ice. Strain into a chilled coupe glass. Garnish with olive or lemon twist.",
+    "ingredients": [
+      {"name": "Gin", "amount": "2.5 oz"},
+      {"name": "Dry Vermouth", "amount": "0.5 oz"},
+      {"name": "Olive", "amount": "1"}
+    ]
+  },
+  {
+    "name": "Old Fashioned",
+    "difficulty": 2,
+    "instructions": "Muddle sugar and bitters with a splash of water. Add bourbon and large ice cube. Stir well. Garnish with orange peel and cherry.",
+    "ingredients": [
+      {"name": "Bourbon", "amount": "2 oz"},
+      {"name": "Angostura Bitters", "amount": "2 dashes"},
+      {"name": "Sugar", "amount": "1 tsp"},
+      {"name": "Orange Peel", "amount": "1"},
+      {"name": "Cherry", "amount": "1"}
+    ]
+  },
+  {
+    "name": "Daiquiri",
+    "difficulty": 1,
+    "instructions": "Shake rum, fresh lime juice, and simple syrup with ice. Strain into a coupe glass.",
+    "ingredients": [
+      {"name": "Rum Light", "amount": "2 oz"},
+      {"name": "Fresh Lime Juice", "amount": "0.75 oz"},
+      {"name": "Simple Syrup", "amount": "0.5 oz"}
+    ]
+  },
+  {
+    "name": "Margarita",
+    "difficulty": 2,
+    "instructions": "Shake tequila, Cointreau, and fresh lime juice with ice. Strain into a salt-rimmed coupe glass.",
+    "ingredients": [
+      {"name": "Tequila Blanco", "amount": "2 oz"},
+      {"name": "Cointreau", "amount": "1 oz"},
+      {"name": "Fresh Lime Juice", "amount": "0.75 oz"}
+    ]
+  },
+  {
+    "name": "Mojito",
+    "difficulty": 3,
+    "instructions": "Muddle fresh mint and simple syrup. Add rum and ice. Top with soda water. Stir well. Garnish with mint sprig.",
+    "ingredients": [
+      {"name": "Rum Light", "amount": "2 oz"},
+      {"name": "Fresh Mint", "amount": "12 leaves"},
+      {"name": "Fresh Lime Juice", "amount": "0.75 oz"},
+      {"name": "Simple Syrup", "amount": "0.75 oz"},
+      {"name": "Soda Water", "amount": "2 oz"}
+    ]
+  },
+  {
+    "name": "Whiskey Sour",
+    "difficulty": 3,
+    "instructions": "Shake bourbon, fresh lemon juice, simple syrup, and egg white with ice. Strain into rocks glass with ice. Top with bitters.",
+    "ingredients": [
+      {"name": "Bourbon", "amount": "2 oz"},
+      {"name": "Fresh Lemon Juice", "amount": "0.75 oz"},
+      {"name": "Simple Syrup", "amount": "0.5 oz"},
+      {"name": "Angostura Bitters", "amount": "2 dashes"}
+    ]
+  },
+  {
+    "name": "Cosmopolitan",
+    "difficulty": 2,
+    "instructions": "Shake vodka, Cointreau, cranberry juice, and fresh lime juice with ice. Strain into a coupe glass. Garnish with lime twist.",
+    "ingredients": [
+      {"name": "Vodka", "amount": "1.5 oz"},
+      {"name": "Cointreau", "amount": "1 oz"},
+      {"name": "Cranberry Juice", "amount": "0.75 oz"},
+      {"name": "Fresh Lime Juice", "amount": "0.5 oz"}
+    ]
+  },
+  {
+    "name": "Manhattan",
+    "difficulty": 2,
+    "instructions": "Stir rye whiskey, sweet vermouth, and bitters with ice. Strain into a coupe glass. Garnish with cherry.",
+    "ingredients": [
+      {"name": "Rye Whiskey", "amount": "2 oz"},
+      {"name": "Sweet Vermouth", "amount": "1 oz"},
+      {"name": "Angostura Bitters", "amount": "2 dashes"},
+      {"name": "Cherry", "amount": "1"}
+    ]
+  },
+  {
+    "name": "Sazerac",
+    "difficulty": 4,
+    "instructions": "Rinse glass with absinthe. Stir rye, Fernet-Branca, and bitters with ice. Strain into the rinsed glass. Garnish with lemon twist.",
+    "ingredients": [
+      {"name": "Rye Whiskey", "amount": "2 oz"},
+      {"name": "Fernet-Branca", "amount": "0.5 oz"},
+      {"name": "Angostura Bitters", "amount": "3 dashes"},
+      {"name": "Lemon Twist", "amount": "1"}
+    ]
+  },
+  {
+    "name": "Espresso Martini",
+    "difficulty": 3,
+    "instructions": "Shake vodka, Kahlua, and fresh espresso with ice. Strain into a coupe glass. Garnish with coffee beans.",
+    "ingredients": [
+      {"name": "Vodka", "amount": "1.5 oz"},
+      {"name": "Kahlua", "amount": "1 oz"},
+      {"name": "Espresso", "amount": "1 oz"},
+      {"name": "Simple Syrup", "amount": "0.5 oz"}
+    ]
+  },
+  {
+    "name": "Aperol Spritz",
+    "difficulty": 1,
+    "instructions": "Build in a wine glass: Aperol, prosecco, and soda water. Stir gently. Garnish with orange slice.",
+    "ingredients": [
+      {"name": "Campari", "amount": "1.5 oz"},
+      {"name": "Soda Water", "amount": "3 oz"}
+    ]
+  },
+  {
+    "name": "Moscow Mule",
+    "difficulty": 1,
+    "instructions": "Build in a copper mug: vodka and ginger beer. Stir. Garnish with lime wheel.",
+    "ingredients": [
+      {"name": "Vodka", "amount": "1.5 oz"},
+      {"name": "Ginger Beer", "amount": "4 oz"},
+      {"name": "Fresh Lime Juice", "amount": "0.5 oz"},
+      {"name": "Lime Wheel", "amount": "1"}
+    ]
+  },
+  {
+    "name": "Dark & Stormy",
+    "difficulty": 1,
+    "instructions": "Build in a rocks glass with ice: dark rum and ginger beer. Stir well. Garnish with lime wheel.",
+    "ingredients": [
+      {"name": "Rum Dark", "amount": "2 oz"},
+      {"name": "Ginger Beer", "amount": "4 oz"},
+      {"name": "Lime Wheel", "amount": "1"}
+    ]
+  },
+  {
+    "name": "Penicillin",
+    "difficulty": 3,
+    "instructions": "Shake Scotch, fresh lemon juice, honey syrup, and ginger liqueur with ice. Strain into rocks glass with ice. Garnish with candied ginger.",
+    "ingredients": [
+      {"name": "Scotch Whisky", "amount": "2 oz"},
+      {"name": "Fresh Lemon Juice", "amount": "0.75 oz"},
+      {"name": "Simple Syrup", "amount": "0.75 oz"}
+    ]
+  },
+  {
+    "name": "Mai Tai",
+    "difficulty": 3,
+    "instructions": "Shake both rums, Cointreau, fresh lime juice, orgeat, and bitters with ice. Strain into a rocks glass with crushed ice. Garnish with mint and orange.",
+    "ingredients": [
+      {"name": "Rum Light", "amount": "1 oz"},
+      {"name": "Rum Dark", "amount": "1 oz"},
+      {"name": "Cointreau", "amount": "0.5 oz"},
+      {"name": "Fresh Lime Juice", "amount": "0.75 oz"},
+      {"name": "Amaretto", "amount": "0.5 oz"},
+      {"name": "Angostura Bitters", "amount": "2 dashes"}
+    ]
+  },
+  {
+    "name": "Clover Club",
+    "difficulty": 3,
+    "instructions": "Shake gin, raspberry syrup, fresh lemon juice, and egg white with ice. Strain into a coupe glass.",
+    "ingredients": [
+      {"name": "Gin", "amount": "2 oz"},
+      {"name": "Fresh Lemon Juice", "amount": "0.75 oz"},
+      {"name": "Simple Syrup", "amount": "0.5 oz"}
+    ]
+  },
+  {
+    "name": "Aviation",
+    "difficulty": 3,
+    "instructions": "Shake gin, maraschino liqueur, fresh lemon juice, and crème de violette with ice. Strain into a coupe glass.",
+    "ingredients": [
+      {"name": "Gin", "amount": "2 oz"},
+      {"name": "Creme de Menthe", "amount": "0.5 oz"},
+      {"name": "Fresh Lemon Juice", "amount": "0.75 oz"}
+    ]
+  },
+  {
+    "name": "Last Word",
+    "difficulty": 3,
+    "instructions": "Shake gin, green Chartreuse, fresh lime juice, and maraschino liqueur with ice. Strain into a coupe glass.",
+    "ingredients": [
+      {"name": "Gin", "amount": "0.75 oz"},
+      {"name": "Chartreuse Green", "amount": "0.75 oz"},
+      {"name": "Fresh Lime Juice", "amount": "0.75 oz"},
+      {"name": "Creme de Menthe", "amount": "0.75 oz"}
+    ]
+  },
+  {
+    "name": "Boulevardier",
+    "difficulty": 2,
+    "instructions": "Stir rye whiskey, sweet vermouth, and Campari with ice. Strain into a coupe glass. Garnish with orange twist.",
+    "ingredients": [
+      {"name": "Rye Whiskey", "amount": "1.5 oz"},
+      {"name": "Sweet Vermouth", "amount": "1 oz"},
+      {"name": "Campari", "amount": "1 oz"}
+    ]
+  },
+  {
+    "name": "Sidecar",
+    "difficulty": 2,
+    "instructions": "Shake brandy, Cointreau, and fresh lemon juice with ice. Strain into a coupe glass.",
+    "ingredients": [
+      {"name": "Brandy", "amount": "1.5 oz"},
+      {"name": "Cointreau", "amount": "1 oz"},
+      {"name": "Fresh Lemon Juice", "amount": "0.75 oz"}
+    ]
+  },
+  {
+    "name": "Pisco Sour",
+    "difficulty": 3,
+    "instructions": "Shake pisco, fresh lime juice, simple syrup, egg white, and bitters with ice. Strain into a coupe glass. Top with bitters.",
+    "ingredients": [
+      {"name": "Brandy", "amount": "2 oz"},
+      {"name": "Fresh Lime Juice", "amount": "1 oz"},
+      {"name": "Simple Syrup", "amount": "0.75 oz"},
+      {"name": "Angostura Bitters", "amount": "2 dashes"}
+    ]
+  }
+]

@@ -55,6 +55,22 @@ def create_access_token(
     return str(jwt.encode(to_encode, _jwt_secret(), algorithm=settings.jwt_algorithm))
 
 
+def decode_access_token(token: str) -> dict[str, Any]:
+    """Decode and validate JWT access token."""
+    try:
+        payload = jwt.decode(
+            token,
+            _jwt_secret(),
+            algorithms=[settings.jwt_algorithm],
+        )
+        return dict(payload)
+    except JWTError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+        ) from exc
+
+
 def require_auth(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
 ) -> dict[str, Any]:
