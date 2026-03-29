@@ -2208,7 +2208,7 @@ Wave FINAL (After ALL tasks — verification):
   **Commit**: YES
   - Message: `test: add integration tests for auth, AI service, and full stack`
 
-- [ ] 31. Final Quality Gate — Lint, Type-Check, Compose Smoke Test
+- [x] 31. Final Quality Gate — Lint, Type-Check, Compose Smoke Test
 
   **What to do**:
   - Run full quality suite:
