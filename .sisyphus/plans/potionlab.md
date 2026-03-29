@@ -1101,7 +1101,7 @@ Wave FINAL (After ALL tasks — verification):
   - Message: `docs: add README with setup instructions, API reference, and .http playground`
   - Files: `README.md, examples.http, .env.example`
 
-- [ ] 11. Final Quality Gate — Lint, Type-Check, Coverage
+- [x] 11. Final Quality Gate — Lint, Type-Check, Coverage
 
   **What to do**:
   - Run `uv run ruff check .` — fix any lint errors

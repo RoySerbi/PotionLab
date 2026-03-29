@@ -776,3 +776,53 @@ uv run pytest --collect-only -q | grep -E "test_" | wc -l
 - Configured .env.example with POTION_ prefix for environment variables as defined in app/core/config.py.
 - Verified all instructions: `uv sync`, `uv run pytest -q` (48 tests passing), and `uv run python scripts/seed.py` (idempotent).
 - Confirmed project structure: `src/` as app root, `app.main:app` as entry point, `data/` for local SQLite storage.
+
+---
+
+## Task 11: Final Quality Gate Verification & EX1 Submission
+
+### Key Learnings
+
+**1. Type Annotation Completeness**
+- MyPy (strict mode) requires ALL async endpoints to have explicit return type annotations
+- Even simple endpoints like health checks must be annotated: `async def health_check() -> dict[str, str]:`
+- The `# type: ignore` suppression on lifespan asynccontextmanager is acceptable due to complex generic typing
+- Lesson: Add return types early during development, not as a final gate check
+
+**2. Quality Gate Verification Complete**
+- All 7 gates passed at first run (after small type annotation fix):
+  - Ruff linting: 0 errors
+  - MyPy type check: 0 errors (23 source files)
+  - Pytest: 48/48 tests passing (0.45s)
+  - Coverage: 96% (405 statements, 16 missed)
+  - Server startup: "Application startup complete" with no warnings
+  - Seed script: Idempotent, creates 12 tags + 39 ingredients + 22 cocktails
+  - Git tag: `ex1-final` created
+
+**3. Coverage Analysis at 96%**
+- Missed lines concentrated in:
+  - `api/v1/cocktails.py`: Lines 32-33, 63, 96-97 (5 lines)
+  - `db/session.py`: Lines 31, 36-37 (3 lines)
+  - `main.py`: Lines 13-14 (2 lines) 
+  - `services/cocktail.py`: Lines 9, 38, 92, 169-171 (6 lines)
+- Total: 16 missed lines out of 405 statements = 96% coverage
+- These are mostly error paths and session management edge cases
+
+**4. Git Tagging for Submission**
+- Command: `git tag -a ex1-final -m "EX1 Complete: FastAPI CRUD backend with 48 tests, 96% coverage"`
+- Annotated tags preserve metadata and creation message
+- Verify with: `git tag | grep ex1` or `git show ex1-final`
+- This tag marks the EX1 deliverable frozen point
+
+**5. End-to-End Workflow Verification**
+- Seed script runs cleanly on fresh database (rm -f data/app.db)
+- No warnings during server startup with lifespan context manager
+- All imports properly resolved (23 source files clean)
+- Full CRUD cycle tested in pytest suite with warnings suppressed
+
+### Evidence Saved
+- Evidence file: `.sisyphus/evidence/task-11-quality-gates.txt`
+- All check outputs preserved for verification
+- EX1 submission ready: tag `ex1-final` created and verified
+
+---
