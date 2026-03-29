@@ -1,150 +1,135 @@
-### REST Client Examples for EASS Movie Service
+### REST Client Examples for PotionLab API
 ### Install the VS Code Extension: REST Client (humao.rest-client)
 ### Then right-click any request and select "Send Request"
 
 @baseUrl = http://localhost:8000
-@token = YOUR_JWT_TOKEN_HERE
+@apiPrefix = /api/v1
 
 # ============================================================================
 # Health Check
 # ============================================================================
-GET @baseUrl/health
+GET {{baseUrl}}/health
 
 
 # ============================================================================
-# Movie Endpoints (Session 05+)
+# Flavor Tags CRUD
 # ============================================================================
 
-### List all movies
-GET @baseUrl/movies
-
-
-### Get a specific movie
-GET @baseUrl/movies/1
-
-
-### Create a new movie
-POST @baseUrl/movies
+### Create Flavor Tag
+# @name createFlavorTag
+POST {{baseUrl}}{{apiPrefix}}/flavor-tags/
 Content-Type: application/json
 
 {
-  "title": "Dune",
-  "year": 2021,
-  "genre": "Sci-Fi"
+  "name": "Smoky",
+  "category": "Profile"
 }
 
+### List Flavor Tags
+GET {{baseUrl}}{{apiPrefix}}/flavor-tags/
 
-### Get top-rated movies
-GET @baseUrl/movies/top?limit=3
+### Get Flavor Tag Detail
+# Replace 1 with an actual ID from the list
+GET {{baseUrl}}{{apiPrefix}}/flavor-tags/1
 
-
-# ============================================================================
-# Rating Endpoints (Session 05+)
-# ============================================================================
-
-### Submit a rating
-POST @baseUrl/ratings
+### Update Flavor Tag
+PUT {{baseUrl}}{{apiPrefix}}/flavor-tags/1
 Content-Type: application/json
 
 {
-  "movie_id": 1,
-  "user_id": 42,
-  "score": 5
+  "name": "Extra Smoky",
+  "category": "Profile"
 }
 
-
-# ============================================================================
-# Authentication (Session 11+)
-# ============================================================================
-
-### Login as teacher (editor role)
-POST @baseUrl/token
-Content-Type: application/x-www-form-urlencoded
-
-username=teacher&password=classroom
-
-
-### Login as student (viewer role)
-POST @baseUrl/token
-Content-Type: application/x-www-form-urlencoded
-
-username=student&password=secret
+### Delete Flavor Tag
+DELETE {{baseUrl}}{{apiPrefix}}/flavor-tags/1
 
 
 # ============================================================================
-# Protected Routes (Session 11+)
-# Requires Bearer token – update @token variable above with response from /token
+# Ingredients CRUD
 # ============================================================================
 
-### Create a movie (editor role only)
-POST @baseUrl/movies
+### Create Ingredient
+# @name createIngredient
+POST {{baseUrl}}{{apiPrefix}}/ingredients/
 Content-Type: application/json
-Authorization: Bearer @token
 
 {
-  "title": "Oppenheimer",
-  "year": 2023,
-  "genre": "Drama"
+  "name": "Islay Scotch",
+  "category": "Spirit",
+  "description": "Peated single malt whisky from Islay",
+  "flavor_tag_ids": [1]
 }
 
+### List Ingredients
+GET {{baseUrl}}{{apiPrefix}}/ingredients/
 
-### Add rating (editor role only)
-POST @baseUrl/ratings
+### Get Ingredient Detail
+GET {{baseUrl}}{{apiPrefix}}/ingredients/1
+
+### Update Ingredient
+PUT {{baseUrl}}{{apiPrefix}}/ingredients/1
 Content-Type: application/json
-Authorization: Bearer @token
 
 {
-  "movie_id": 1,
-  "user_id": 42,
-  "score": 4
+  "name": "Laphroaig 10",
+  "category": "Spirit",
+  "description": "Very peaty Islay single malt",
+  "flavor_tag_ids": [1]
 }
 
+### Delete Ingredient
+DELETE {{baseUrl}}{{apiPrefix}}/ingredients/1
+
 
 # ============================================================================
-# Tool Endpoint (Session 12+)
+# Cocktails CRUD
 # ============================================================================
 
-### Get recommendations (editor role only)
-POST @baseUrl/tool/recommend-movie
+### Create Cocktail
+# @name createCocktail
+POST {{baseUrl}}{{apiPrefix}}/cocktails/
 Content-Type: application/json
-Authorization: Bearer @token
 
 {
-  "payload": {
-    "user_id": 42,
-    "limit": 5
-  }
+  "name": "Smoky Martini",
+  "description": "A dry martini with a peaty twist",
+  "instructions": "Stir ingredients with ice and strain into a chilled glass.",
+  "glass_type": "Martini",
+  "difficulty": 2,
+  "ingredients": [
+    {
+      "ingredient_id": 1,
+      "amount": "60ml",
+      "is_optional": false
+    }
+  ]
 }
 
+### List Cocktails
+GET {{baseUrl}}{{apiPrefix}}/cocktails/
 
-# ============================================================================
-# Background Jobs (Session 09+)
-# ============================================================================
+### Get Cocktail Detail
+GET {{baseUrl}}{{apiPrefix}}/cocktails/1
 
-### Trigger recommendation rebuild
-POST @baseUrl/recommender/rebuild
-Authorization: Bearer @token
+### Update Cocktail
+PUT {{baseUrl}}{{apiPrefix}}/cocktails/1
+Content-Type: application/json
 
+{
+  "name": "The Peat Monster",
+  "description": "Updated description",
+  "instructions": "Shake vigorously and strain.",
+  "glass_type": "Coupe",
+  "difficulty": 3,
+  "ingredients": [
+    {
+      "ingredient_id": 1,
+      "amount": "50ml",
+      "is_optional": false
+    }
+  ]
+}
 
-### Check rebuild task status
-GET @baseUrl/recommender/rebuild/{task_id}
-
-
-# ============================================================================
-# NOTES
-# ============================================================================
-# 1. To use the @token variable:
-#    - Run the "Login as teacher" request above
-#    - The response will contain "access_token"
-#    - Copy the token value into the @token variable
-#
-# 2. Some endpoints require authentication (Session 11+):
-#    - POST /movies (requires editor role)
-#    - POST /ratings (requires editor role)
-#    - POST /tool/recommend-movie (requires editor role)
-#    - To test, first login to get a token
-#
-# 3. Troubleshooting:
-#    - If you get 422 Unprocessable Entity, check JSON formatting
-#    - If you get 401 Unauthorized, ensure token is valid and Bearer prefix is used
-#    - If you get 403 Forbidden, your user role is too low (try "teacher" account)
+### Delete Cocktail
+DELETE {{baseUrl}}{{apiPrefix}}/cocktails/1

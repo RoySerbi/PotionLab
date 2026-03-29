@@ -1031,7 +1031,7 @@ Wave FINAL (After ALL tasks — verification):
   - Files: `tests/**`
   - Pre-commit: `uv run pytest -q`
 
-- [ ] 10. README + .http Playground File
+- [x] 10. README + .http Playground File
 
   **What to do**:
   - Write `README.md` with:

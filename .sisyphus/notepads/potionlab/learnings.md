@@ -768,3 +768,11 @@ uv run pytest --collect-only -q | grep -E "test_" | wc -l
 - Monitor coverage trends as new features are added
 - Refactor tests if duplication emerges (extract helper functions)
 - Add performance tests if API latency becomes a concern
+
+### Task 10: Documentation & Submission Readiness (2026-03-29)
+- Finalized README.md with comprehensive setup, run, test, and seeding instructions.
+- Included mandatory "AI Assistance" section as per EX1 submission requirements.
+- Created examples.http with 16 REST Client requests covering all CRUD operations for FlavorTags, Ingredients, and Cocktails.
+- Configured .env.example with POTION_ prefix for environment variables as defined in app/core/config.py.
+- Verified all instructions: `uv sync`, `uv run pytest -q` (48 tests passing), and `uv run python scripts/seed.py` (idempotent).
+- Confirmed project structure: `src/` as app root, `app.main:app` as entry point, `data/` for local SQLite storage.

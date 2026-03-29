@@ -1,72 +1,87 @@
-# EASS – Engineering of Advanced Software Solutions (2026 Class IX Course Materials)
+# PotionLab — Cocktail Recipe Engine & Flavor Chemistry Workbench
 
-This repository contains the fully scripted 12-session plan for the **Engineering of Advanced Software Solutions** course (2026 cohort, Class IX). Each class blends 45 minutes of theory with two 45-minute hands-on blocks, and the entire arc follows a single project: building a movie catalogue with FastAPI, SQLModel, Typer, and Streamlit—no heavy infrastructure or security overhead required.
+PotionLab is a specialized backend service for mixologists and flavor scientists. It manages cocktail recipes, ingredients, and complex flavor profiles, allowing for sophisticated beverage management and flavor chemistry analysis.
 
-## 🚀 Quick Start for Instructors
+## Prerequisites
 
+- Python 3.12+
+- `uv` (modern Python package manager)
+
+## Setup
+
+1. **Install dependencies**:
+   ```bash
+   uv sync
+   ```
+
+2. **Configure environment**:
+   ```bash
+   cp .env.example .env
+   mkdir -p data
+   ```
+
+## Running the Application
+
+### Start the API Server
+Run the FastAPI application with Uvicorn:
 ```bash
-git clone https://github.com/EASS-HIT-PART-A-2026-CLASS-IX/lecture-notes.git
-cd lecture-notes
+uv run uvicorn app.main:app --reload --app-dir src
+```
+The API will be available at `http://localhost:8000`.
+
+### Seed the Database
+Populate the database with a curated selection of 22 cocktails and their ingredients:
+```bash
+uv run python scripts/seed.py
 ```
 
-Primary organization for this cohort: `https://github.com/EASS-HIT-PART-A-2026-CLASS-IX/`.
+## API Endpoints
 
-Open the `docs/` folder (or load the repo in VS Code) to follow any session directly—no static site build is required.
+The API is versioned under `/api/v1/`.
 
-Key documents:
+| Method | Path | Description |
+| :--- | :--- | :--- |
+| **GET** | `/health` | Liveness check (returns `{"status": "ok"}`) |
+| **POST** | `/api/v1/flavor-tags/` | Create a new flavor profile tag |
+| **GET** | `/api/v1/flavor-tags/` | List all available flavor tags |
+| **GET** | `/api/v1/flavor-tags/{id}` | Get detailed flavor tag information |
+| **PUT** | `/api/v1/flavor-tags/{id}` | Update an existing flavor tag |
+| **DELETE** | `/api/v1/flavor-tags/{id}` | Remove a flavor tag |
+| **POST** | `/api/v1/ingredients/` | Create a new ingredient with flavor tags |
+| **GET** | `/api/v1/ingredients/` | List all ingredients |
+| **GET** | `/api/v1/ingredients/{id}` | Get ingredient detail with tags |
+| **PUT** | `/api/v1/ingredients/{id}` | Update ingredient properties |
+| **DELETE** | `/api/v1/ingredients/{id}` | Remove an ingredient |
+| **POST** | `/api/v1/cocktails/` | Create a cocktail with nested ingredients |
+| **GET** | `/api/v1/cocktails/` | List all cocktails |
+| **GET** | `/api/v1/cocktails/{id}` | Get cocktail with full ingredient list |
+| **PUT** | `/api/v1/cocktails/{id}` | Update cocktail recipe or metadata |
+| **DELETE** | `/api/v1/cocktails/{id}` | Remove a cocktail from the library |
 
-- `docs/index.md` – entry point with links to every session and deadline summary.
-- `docs/exercises.md` – specifications and rubrics for the three lightweight exercises.
-- `docs/sessions/session-XX.md` – detailed talk tracks, copy/paste code, AI prompt kits, troubleshooting, and verification commands for each class.
-- `docs/troubleshooting.md` – quick fixes for common environment issues (uv, imports, Redis, etc.).
-- `examples.http` – ready-to-run VS Code REST Client requests for the movie API.
-- `docs/workflows/ai-assisted/` – new Codex paradigm for working with AI assistants (briefs, checklists, teaching guide).
+## Testing
 
-## 🧠 Course Highlights
+Run the full test suite (48 tests covering CRUD operations and business logic):
+```bash
+uv run pytest -q
+```
 
-- Sessions 01–04: developer environment (Linux/WSL/macOS), HTTP/REST, FastAPI fundamentals, and the first persistence swap (SQLite via SQLModel) with uv-powered packaging.
-- Sessions 05–08: movie service persistence, Streamlit & Typer interfaces, testing/logging, and AI-assisted coding habits.
-- Sessions 09–11: optional deep dives (async refreshers, Compose concepts, security vocabulary) for curious students—deliverables stay simple even if you browse these.
-- Session 12: polish, demos, and tool-friendly API patterns.
-- Cloud onboarding: students use **AWS Educate** at https://www.awseducate.com/ (self-paced, free, no credit card required) for Compute/Storage/Databases fundamentals.
-- Exercises pace with the storyline:
-  - **EX1** (assigned Monday, 16/03/2026; due Monday, 30/03/2026 at 23:59 Israel time): ship the FastAPI CRUD service from Session 03 with tests/Docker; adopt Session 04’s SQLite upgrade as soon as you’re ready so persistence is solved before EX3.
-  - **EX2** (assigned Monday, 27/04/2026; due Monday, 18/05/2026 at 23:59 Israel time): deliver a Streamlit dashboard **or** Typer CLI that talks to the EX1 API.
-  - **EX3** (assigned Monday, 25/05/2026; final submission window opens Monday, 29/06/2026; final due Wednesday, 01/07/2026 at 23:59 Israel time): integrate the API, dedicated persistence layer, and interface into a local multi-service stack (3+ cooperating processes), add one thoughtful improvement, and document the runbook. Everything runs locally; cloud, Docker, and security work are optional extras only.
-  - **Choose your own domain:** the live sessions use a movie catalogue as the teaching example, but students pick any narrow theme (recipes, books, robotics gear, etc.) and keep it for all three exercises.
+To check test coverage:
+```bash
+uv run pytest --cov=src --cov-report=term-missing
+```
 
-## 🌱 Future-facing Engineering Archetypes
-Modern software careers are coalescing around four builder profiles, and every lab in this repo intentionally hits each archetype so students can imagine their next role:
+## REST Client Playground
 
-1. **Field / Business Engineer (the people person)** – Turns office-hour demos into “this solves your problem” stories and keeps customer value front and center.
-2. **DevOps & Infrastructure Engineer (the reliability guru)** – Automates the boring parts: Docker Compose, repeatable env setup, health checks, and log-friendly services.
-3. **Full-stack Product Engineer (the end-to-end builder)** – Ships UI, API, and persistence together; FastAPI + Streamlit reps are the backbone of the course.
-4. **AI Full-stack Engineer (the intelligence layer)** – Wires agents, retrieval flows, and safe automation; Session 08 plus the optional MCP/DuckDB tracks pave that on-ramp.
+An `examples.http` file is provided for use with the [VS Code REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) extension. It contains ready-to-run requests for all primary API operations.
 
-**Course promise**: graduates leave day-one ready for archetypes 3–4, with enough automation muscle memory to be a smart bet for archetype 2 if a team mentors them. By constantly narrating stakeholder impact we keep archetype 1 in the conversation too, so students can explain their builds to humans, not just terminals.
+## AI Assistance
 
-## 🗂️ Legacy Materials
+This project was developed using AI-assisted engineering practices. 
 
-Historical slides and Natalie’s notes live under `old-lecture-notes/`:
+- **Architectural Design**: AI was used to draft the initial SQLModel schema and many-to-many relationship structures.
+- **Implementation**: Core service logic and FastAPI route handlers were generated and refined based on project-specific requirements.
+- **Testing**: The comprehensive test suite was automated to ensure high coverage and edge-case handling.
+- **Documentation**: This README and the API documentation were drafted with AI assistance to ensure clarity and adherence to submission guidelines.
 
-- `old-lecture-notes/archive/` – previous slide decks and Makefile.
-- `old-lecture-notes/notes/` – Natalie’s comprehensive PDF reference.
+All AI-generated code has been manually reviewed, tested, and integrated into the final PotionLab service.
 
-These are preserved for reference but the new scripted sessions in `docs/` are the canonical teaching materials.
-
-## 🤝 Contributing / Updating
-
-1. Edit the relevant `docs/sessions/session-XX.md` file (each is standalone and self-contained).
-2. Run through the verification commands provided in that session (most require `uv run pytest -q` or `curl` checks).
-3. Commit changes and push to `main` (the repository is intentionally kept current for instructors).
-
-## 🧪 AI-Assisted Workflow (Codex Paradigm)
-
-The repo is organized around the cycle described in Anindya Chakraborty’s *AI Assisted Coding: Quicker Code Doesn’t Mean Higher Velocity*. Before prompting an assistant, fill out `docs/workflows/ai-assisted/templates/feature-brief.md`, keep diffs under ~150 LOC chunks, and run the review checklist in `docs/workflows/ai-assisted/checklists/review.md`. The complete teaching plan for this workflow lives in `docs/workflows/ai-assisted/teaching-guide.md`; use it whenever you update a session or add new materials so students learn the same habits.
-
-If you spot an issue or want to suggest an improvement, open a GitHub issue or pull request with the session number in the title (e.g., `Session 05 – clarify rating fixture`).
-
-Have a great semester!
-
-## Additional Resources (400+ Question Vault)
-- [EASS HIT 100 Questions](https://eass-hit-100-questions.netlify.app/) – Drill site with 400+ prompts to refresh memory and reinforce fundamentals.
