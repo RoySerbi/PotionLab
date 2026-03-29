@@ -1,0 +1,103 @@
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.iml
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+movies.db
+test.db
+data/
+
+# Node / Frontend (if using React)
+node_modules/
+dist/
+.next/
+out/
+
+# Docker
+.dockerignore
+
+# OS
+Thumbs.db
+*.log
+
+# Temporary files
+.temp/
+tmp/
+temp/
+
+# IDE generated
+.project
+.pydevproject
+.settings/
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre
+.pyre/
+
+# Redis
+dump.rdb
+
+# Instructor materials
+POSSIBLE_PLAN.pdf
+_*
+
+# Allow package markers
+!**/__init__.py
+
+# Build artifacts
+.build/
+/site/

@@ -1,0 +1,150 @@
+### REST Client Examples for EASS Movie Service
+### Install the VS Code Extension: REST Client (humao.rest-client)
+### Then right-click any request and select "Send Request"
+
+@baseUrl = http://localhost:8000
+@token = YOUR_JWT_TOKEN_HERE
+
+# ============================================================================
+# Health Check
+# ============================================================================
+GET @baseUrl/health
+
+
+# ============================================================================
+# Movie Endpoints (Session 05+)
+# ============================================================================
+
+### List all movies
+GET @baseUrl/movies
+
+
+### Get a specific movie
+GET @baseUrl/movies/1
+
+
+### Create a new movie
+POST @baseUrl/movies
+Content-Type: application/json
+
+{
+  "title": "Dune",
+  "year": 2021,
+  "genre": "Sci-Fi"
+}
+
+
+### Get top-rated movies
+GET @baseUrl/movies/top?limit=3
+
+
+# ============================================================================
+# Rating Endpoints (Session 05+)
+# ============================================================================
+
+### Submit a rating
+POST @baseUrl/ratings
+Content-Type: application/json
+
+{
+  "movie_id": 1,
+  "user_id": 42,
+  "score": 5
+}
+
+
+# ============================================================================
+# Authentication (Session 11+)
+# ============================================================================
+
+### Login as teacher (editor role)
+POST @baseUrl/token
+Content-Type: application/x-www-form-urlencoded
+
+username=teacher&password=classroom
+
+
+### Login as student (viewer role)
+POST @baseUrl/token
+Content-Type: application/x-www-form-urlencoded
+
+username=student&password=secret
+
+
+# ============================================================================
+# Protected Routes (Session 11+)
+# Requires Bearer token – update @token variable above with response from /token
+# ============================================================================
+
+### Create a movie (editor role only)
+POST @baseUrl/movies
+Content-Type: application/json
+Authorization: Bearer @token
+
+{
+  "title": "Oppenheimer",
+  "year": 2023,
+  "genre": "Drama"
+}
+
+
+### Add rating (editor role only)
+POST @baseUrl/ratings
+Content-Type: application/json
+Authorization: Bearer @token
+
+{
+  "movie_id": 1,
+  "user_id": 42,
+  "score": 4
+}
+
+
+# ============================================================================
+# Tool Endpoint (Session 12+)
+# ============================================================================
+
+### Get recommendations (editor role only)
+POST @baseUrl/tool/recommend-movie
+Content-Type: application/json
+Authorization: Bearer @token
+
+{
+  "payload": {
+    "user_id": 42,
+    "limit": 5
+  }
+}
+
+
+# ============================================================================
+# Background Jobs (Session 09+)
+# ============================================================================
+
+### Trigger recommendation rebuild
+POST @baseUrl/recommender/rebuild
+Authorization: Bearer @token
+
+
+### Check rebuild task status
+GET @baseUrl/recommender/rebuild/{task_id}
+
+
+# ============================================================================
+# NOTES
+# ============================================================================
+# 1. To use the @token variable:
+#    - Run the "Login as teacher" request above
+#    - The response will contain "access_token"
+#    - Copy the token value into the @token variable
+#
+# 2. Some endpoints require authentication (Session 11+):
+#    - POST /movies (requires editor role)
+#    - POST /ratings (requires editor role)
+#    - POST /tool/recommend-movie (requires editor role)
+#    - To test, first login to get a token
+#
+# 3. Troubleshooting:
+#    - If you get 422 Unprocessable Entity, check JSON formatting
+#    - If you get 401 Unauthorized, ensure token is valid and Bearer prefix is used
+#    - If you get 403 Forbidden, your user role is too low (try "teacher" account)

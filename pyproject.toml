@@ -1,0 +1,69 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "potionlab"
+version = "0.1.0"
+description = "PotionLab: Cocktail Recipe Engine & Flavor Chemistry Workbench"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "EASS Student", email = "student@example.com"}
+]
+dependencies = [
+    "fastapi>=0.100.0",
+    "uvicorn[standard]>=0.24.0",
+    "sqlmodel>=0.0.14",
+    "pydantic>=2.0",
+    "pydantic-settings>=2.0",
+    "httpx>=0.24.0",
+    "pytest>=7.0",
+    "pytest-asyncio>=0.20.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+    "typer>=0.9.0",
+    "rich>=13.0.0",
+]
+
+[tool.setuptools]
+packages = ["app"]
+package-dir = {"" = "src"}
+
+[project.optional-dependencies]
+dev = [
+    "pytest-cov==4.1.0",
+]
+
+[project.scripts]
+seed = "scripts.seed:main"
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+check_untyped_defs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+ignore_missing_imports = true
+warn_redundant_casts = true
+warn_unused_configs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "--strict-markers"
+markers = [
+    "asyncio: marks tests as async (deselect with '-m \"not asyncio\"')",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["*/tests/*"]
