@@ -1,9 +1,10 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 
-from app.api.v1 import cocktails, flavor_tags, ingredients
+from app.api.v1 import cocktails, flavor_tags, ingredients, routes_auth
 from app.core.config import settings
+from app.core.security import require_auth
 from app.db.session import init_db
 
 
@@ -22,10 +23,17 @@ app = FastAPI(
 
 app.include_router(ingredients.router, prefix="/api/v1")
 app.include_router(flavor_tags.router, prefix="/api/v1")
-app.include_router(cocktails.router, prefix="/api/v1")
+app.include_router(
+    cocktails.router, prefix="/api/v1", dependencies=[Depends(require_auth)]
+)
+app.include_router(routes_auth.router, prefix="/api/v1")
 
 
 @app.get("/health")
 async def health_check() -> dict[str, str]:
     """Health endpoint for liveness checks."""
-    return {"status": "ok"}
+    from app.core.redis_client import get_redis
+
+    redis_client = get_redis()
+    redis_status = "connected" if redis_client else "unavailable"
+    return {"status": "ok", "redis": redis_status}

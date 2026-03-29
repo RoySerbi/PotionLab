@@ -1,0 +1,1 @@
+- Implemented Ingredient Explorer page with Streamlit, including custom category colored badges and flavor tags.\n- Added filtering by category.\n- Implemented client-side filtering to see which cocktails use a specific ingredient.

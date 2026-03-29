@@ -1,5 +1,3 @@
-"""PotionLab API client using synchronous httpx for Streamlit compatibility."""
-
 import logging
 import os
 from typing import Any, cast
@@ -10,16 +8,24 @@ logger = logging.getLogger(__name__)
 
 
 class PotionLabClient:
-    def __init__(self, base_url: str | None = None):
+    def __init__(self, base_url: str | None = None, token: str | None = None):
         self.base_url = base_url or os.getenv(
             "POTIONLAB_API_URL", "http://localhost:8000"
         )
+        self.token = token or os.getenv("POTIONLAB_API_TOKEN")
         self.timeout = 5
+
+    def _auth_headers(self) -> dict[str, str]:
+        if not self.token:
+            return {}
+        return {"Authorization": f"Bearer {self.token}"}
 
     def list_cocktails(self) -> list[dict[str, Any]]:
         try:
             with httpx.Client(timeout=self.timeout, follow_redirects=True) as client:
-                response = client.get(f"{self.base_url}/api/v1/cocktails/")
+                response = client.get(
+                    f"{self.base_url}/api/v1/cocktails/", headers=self._auth_headers()
+                )
                 response.raise_for_status()
                 return cast(list[dict[str, Any]], response.json())
         except httpx.HTTPError as e:
@@ -29,7 +35,10 @@ class PotionLabClient:
     def get_cocktail(self, cocktail_id: int) -> dict[str, Any] | None:
         try:
             with httpx.Client(timeout=self.timeout, follow_redirects=True) as client:
-                response = client.get(f"{self.base_url}/api/v1/cocktails/{cocktail_id}")
+                response = client.get(
+                    f"{self.base_url}/api/v1/cocktails/{cocktail_id}",
+                    headers=self._auth_headers(),
+                )
                 response.raise_for_status()
                 return cast(dict[str, Any], response.json())
         except httpx.HTTPError as e:
@@ -39,7 +48,11 @@ class PotionLabClient:
     def create_cocktail(self, data: dict[str, Any]) -> dict[str, Any] | None:
         try:
             with httpx.Client(timeout=self.timeout, follow_redirects=True) as client:
-                response = client.post(f"{self.base_url}/api/v1/cocktails/", json=data)
+                response = client.post(
+                    f"{self.base_url}/api/v1/cocktails/",
+                    json=data,
+                    headers=self._auth_headers(),
+                )
                 response.raise_for_status()
                 return cast(dict[str, Any], response.json())
         except httpx.HTTPError as e:

@@ -1230,7 +1230,7 @@ Wave FINAL (After ALL tasks — verification):
   - Message: `feat(ui): add Streamlit app skeleton with API client and multi-page layout`
   - Files: `streamlit_app.py, src/app/clients/api_client.py`
 
-- [ ] 13. Cocktail Browser Page — Table + Detail View + Search
+- [x] 13. Cocktail Browser Page — Table + Detail View + Search
 
   **What to do**:
   - In `streamlit_app.py` (or `pages/cocktail_browser.py`):
@@ -1290,7 +1290,7 @@ Wave FINAL (After ALL tasks — verification):
   **Commit**: YES (groups with 14, 15)
   - Message: `feat(ui): add cocktail browser with search, filters, and detail view`
 
-- [ ] 14. Ingredient Explorer Page
+- [x] 14. Ingredient Explorer Page
 
   **What to do**:
   - Ingredient Explorer page:
@@ -1334,7 +1334,7 @@ Wave FINAL (After ALL tasks — verification):
   **Commit**: YES (groups with 13, 15)
   - Message: `feat(ui): add ingredient explorer with category filters and flavor tags`
 
-- [ ] 15. Add New Cocktail Form (Multi-Step)
+- [x] 15. Add New Cocktail Form (Multi-Step)
 
   **What to do**:
   - "Mix a Cocktail" page with multi-section form:
@@ -1396,7 +1396,7 @@ Wave FINAL (After ALL tasks — verification):
   **Commit**: YES (groups with 13, 14)
   - Message: `feat(ui): add cocktail creation form with dynamic ingredient rows`
 
-- [ ] 16. Flavor Wheel Visualization (Plotly Polar Chart)
+- [x] 16. Flavor Wheel Visualization (Plotly Polar Chart)
 
   **What to do**:
   - Add `plotly` dependency: `uv add plotly`
@@ -1445,7 +1445,7 @@ Wave FINAL (After ALL tasks — verification):
   - Message: `feat(ui): add flavor wheel radar chart visualization with plotly`
   - Files: `streamlit_app.py`
 
-- [ ] 17. "What Can I Make?" Basic Filter Page
+- [x] 17. "What Can I Make?" Basic Filter Page
 
   **What to do**:
   - Create "What Can I Make?" page:
@@ -1499,7 +1499,7 @@ Wave FINAL (After ALL tasks — verification):
   **Commit**: YES
   - Message: `feat(ui): add "What Can I Make?" ingredient-based cocktail finder`
 
-- [ ] 18. EX2 README + Side-by-Side Launch Documentation
+- [x] 18. EX2 README + Side-by-Side Launch Documentation
 
   **What to do**:
   - Update README.md:
@@ -1526,7 +1526,7 @@ Wave FINAL (After ALL tasks — verification):
   **Commit**: YES
   - Message: `docs: add EX2 dashboard documentation and launch instructions`
 
-- [ ] 19. Bonus: Automated Streamlit Test
+- [x] 19. Bonus: Automated Streamlit Test
 
   **What to do**:
   - Create `tests/ui/test_streamlit.py`:
@@ -1554,7 +1554,7 @@ Wave FINAL (After ALL tasks — verification):
 
 ### === PHASE 3: EX3 — Capstone Integration (Due 01/07/2026) ===
 
-- [ ] 20. Migrate SQLite → PostgreSQL
+- [x] 20. Migrate SQLite → PostgreSQL
 
   **What to do**:
   - Add `psycopg[binary]` dependency: `uv add "psycopg[binary]"`
@@ -1611,7 +1611,7 @@ Wave FINAL (After ALL tasks — verification):
   **Commit**: YES
   - Message: `feat(db): add PostgreSQL support with dual-mode engine (Postgres/SQLite)`
 
-- [ ] 21. Docker Compose Setup (API + Postgres + Redis)
+- [x] 21. Docker Compose Setup (API + Postgres + Redis)
 
   **What to do**:
   - Create `Dockerfile` for the API:
@@ -1674,7 +1674,7 @@ Wave FINAL (After ALL tasks — verification):
   **Commit**: YES
   - Message: `feat(infra): add Docker Compose with API, PostgreSQL, and Redis`
 
-- [ ] 22. JWT Authentication Module
+- [x] 22. JWT Authentication Module
 
   **What to do**:
   - Add dependencies: `uv add "passlib[bcrypt]" python-jose[cryptography]`
@@ -1758,7 +1758,7 @@ Wave FINAL (After ALL tasks — verification):
   **Commit**: YES
   - Message: `feat(auth): add JWT authentication with bcrypt hashing and role checks`
 
-- [ ] 23. Redis Integration — Connection + Caching Utilities
+- [x] 23. Redis Integration — Connection + Caching Utilities
 
   **What to do**:
   - Add dependency: `uv add redis`

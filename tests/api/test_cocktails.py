@@ -1,12 +1,27 @@
+from typing import Any
+
 import pytest
 from fastapi.testclient import TestClient
 
 
 def test_create_cocktail_with_nested_ingredients(client: TestClient):
     """Test POST /api/v1/cocktails creates cocktail with nested ingredients."""
+    token_response = client.post(
+        "/api/v1/auth/register",
+        json={"username": "cocktail-maker", "password": "secret123"},
+    )
+    assert token_response.status_code == 201
+    login = client.post(
+        "/api/v1/auth/token",
+        json={"username": "cocktail-maker", "password": "secret123"},
+    )
+    assert login.status_code == 200
+    auth_headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
+
     ing_one = client.post(
         "/api/v1/ingredients",
         json={"name": "Gin", "category": "spirit", "description": "Dry gin"},
+        headers=auth_headers,
     )
     ing_two = client.post(
         "/api/v1/ingredients",
@@ -15,6 +30,7 @@ def test_create_cocktail_with_nested_ingredients(client: TestClient):
             "category": "mixer",
             "description": "Bitter tonic",
         },
+        headers=auth_headers,
     )
 
     assert ing_one.status_code == 201
@@ -40,11 +56,15 @@ def test_create_cocktail_with_nested_ingredients(client: TestClient):
         ],
     }
 
-    create_response = client.post("/api/v1/cocktails", json=payload)
+    create_response = client.post(
+        "/api/v1/cocktails", json=payload, headers=auth_headers
+    )
     assert create_response.status_code == 201
     cocktail_id = create_response.json()["id"]
 
-    detail_response = client.get(f"/api/v1/cocktails/{cocktail_id}")
+    detail_response = client.get(
+        f"/api/v1/cocktails/{cocktail_id}", headers=auth_headers
+    )
     assert detail_response.status_code == 200
     detail_payload = detail_response.json()
 
@@ -56,11 +76,12 @@ def test_create_cocktail_with_nested_ingredients(client: TestClient):
     }
 
 
-def test_list_cocktails(client: TestClient):
+def test_list_cocktails(client: TestClient, auth_headers: dict[str, str]):
     """Test GET /api/v1/cocktails returns list of cocktails."""
     ing = client.post(
         "/api/v1/ingredients",
         json={"name": "Vodka", "category": "spirit", "description": "Neutral spirit"},
+        headers=auth_headers,
     )
     assert ing.status_code == 201
 
@@ -78,20 +99,21 @@ def test_list_cocktails(client: TestClient):
             }
         ],
     }
-    client.post("/api/v1/cocktails", json=payload)
+    client.post("/api/v1/cocktails", json=payload, headers=auth_headers)
 
-    response = client.get("/api/v1/cocktails")
+    response = client.get("/api/v1/cocktails", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
     assert len(data) >= 1
 
 
-def test_get_cocktail_by_id(client: TestClient):
+def test_get_cocktail_by_id(client: TestClient, auth_headers: dict[str, str]):
     """Test GET /api/v1/cocktails/{id} returns full cocktail with ingredients."""
     ing = client.post(
         "/api/v1/ingredients",
         json={"name": "Rum", "category": "spirit", "description": "Caribbean rum"},
+        headers=auth_headers,
     )
     assert ing.status_code == 201
 
@@ -105,11 +127,13 @@ def test_get_cocktail_by_id(client: TestClient):
             {"ingredient_id": ing.json()["id"], "amount": "2 oz", "is_optional": False}
         ],
     }
-    create_response = client.post("/api/v1/cocktails", json=payload)
+    create_response = client.post(
+        "/api/v1/cocktails", json=payload, headers=auth_headers
+    )
     assert create_response.status_code == 201
     cocktail_id = create_response.json()["id"]
 
-    response = client.get(f"/api/v1/cocktails/{cocktail_id}")
+    response = client.get(f"/api/v1/cocktails/{cocktail_id}", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == cocktail_id
@@ -118,17 +142,18 @@ def test_get_cocktail_by_id(client: TestClient):
     assert "flavor_profile" in data
 
 
-def test_get_cocktail_not_found(client: TestClient):
+def test_get_cocktail_not_found(client: TestClient, auth_headers: dict[str, str]):
     """Test GET /api/v1/cocktails/{id} returns 404 for missing cocktail."""
-    response = client.get("/api/v1/cocktails/999")
+    response = client.get("/api/v1/cocktails/999", headers=auth_headers)
     assert response.status_code == 404
 
 
-def test_update_cocktail(client: TestClient):
+def test_update_cocktail(client: TestClient, auth_headers: dict[str, str]):
     """Test PUT /api/v1/cocktails/{id} updates cocktail."""
     ing = client.post(
         "/api/v1/ingredients",
         json={"name": "Tequila", "category": "spirit", "description": "Blanco tequila"},
+        headers=auth_headers,
     )
     assert ing.status_code == 201
     ing_id = ing.json()["id"]
@@ -143,7 +168,9 @@ def test_update_cocktail(client: TestClient):
             {"ingredient_id": ing_id, "amount": "2 oz", "is_optional": False}
         ],
     }
-    create_response = client.post("/api/v1/cocktails", json=payload)
+    create_response = client.post(
+        "/api/v1/cocktails", json=payload, headers=auth_headers
+    )
     assert create_response.status_code == 201
     cocktail_id = create_response.json()["id"]
 
@@ -157,13 +184,17 @@ def test_update_cocktail(client: TestClient):
             {"ingredient_id": ing_id, "amount": "2.5 oz", "is_optional": False}
         ],
     }
-    response = client.put(f"/api/v1/cocktails/{cocktail_id}", json=update_payload)
+    response = client.put(
+        f"/api/v1/cocktails/{cocktail_id}",
+        json=update_payload,
+        headers=auth_headers,
+    )
     assert response.status_code == 200
     data = response.json()
     assert data["description"] == "Updated classic sour with lime"
 
 
-def test_update_cocktail_not_found(client: TestClient):
+def test_update_cocktail_not_found(client: TestClient, auth_headers: dict[str, str]):
     """Test PUT /api/v1/cocktails/{id} returns 404 for missing cocktail."""
     response = client.put(
         "/api/v1/cocktails/999",
@@ -175,11 +206,12 @@ def test_update_cocktail_not_found(client: TestClient):
             "difficulty": 1,
             "ingredients": [],
         },
+        headers=auth_headers,
     )
     assert response.status_code == 404
 
 
-def test_delete_cocktail(client: TestClient):
+def test_delete_cocktail(client: TestClient, auth_headers: dict[str, str]):
     """Test DELETE /api/v1/cocktails/{id} removes cocktail."""
     ing = client.post(
         "/api/v1/ingredients",
@@ -188,6 +220,7 @@ def test_delete_cocktail(client: TestClient):
             "category": "spirit",
             "description": "Bourbon whiskey",
         },
+        headers=auth_headers,
     )
     assert ing.status_code == 201
 
@@ -201,24 +234,28 @@ def test_delete_cocktail(client: TestClient):
             {"ingredient_id": ing.json()["id"], "amount": "2 oz", "is_optional": False}
         ],
     }
-    create_response = client.post("/api/v1/cocktails", json=payload)
+    create_response = client.post(
+        "/api/v1/cocktails", json=payload, headers=auth_headers
+    )
     assert create_response.status_code == 201
     cocktail_id = create_response.json()["id"]
 
-    response = client.delete(f"/api/v1/cocktails/{cocktail_id}")
+    response = client.delete(f"/api/v1/cocktails/{cocktail_id}", headers=auth_headers)
     assert response.status_code == 204
 
-    get_response = client.get(f"/api/v1/cocktails/{cocktail_id}")
+    get_response = client.get(f"/api/v1/cocktails/{cocktail_id}", headers=auth_headers)
     assert get_response.status_code == 404
 
 
-def test_delete_cocktail_not_found(client: TestClient):
+def test_delete_cocktail_not_found(client: TestClient, auth_headers: dict[str, str]):
     """Test DELETE /api/v1/cocktails/{id} returns 404 for missing cocktail."""
-    response = client.delete("/api/v1/cocktails/999")
+    response = client.delete("/api/v1/cocktails/999", headers=auth_headers)
     assert response.status_code == 404
 
 
-def test_create_cocktail_with_invalid_ingredient_id(client: TestClient):
+def test_create_cocktail_with_invalid_ingredient_id(
+    client: TestClient, auth_headers: dict[str, str]
+):
     """Test POST /api/v1/cocktails returns 400 for invalid ingredient_id."""
     payload = {
         "name": "Bad Cocktail",
@@ -230,16 +267,19 @@ def test_create_cocktail_with_invalid_ingredient_id(client: TestClient):
             {"ingredient_id": 9999, "amount": "1 oz", "is_optional": False}
         ],
     }
-    response = client.post("/api/v1/cocktails", json=payload)
+    response = client.post("/api/v1/cocktails", json=payload, headers=auth_headers)
     assert response.status_code == 400
     assert "not found" in response.json()["detail"].lower()
 
 
-def test_update_cocktail_with_invalid_ingredient_id(client: TestClient):
+def test_update_cocktail_with_invalid_ingredient_id(
+    client: TestClient, auth_headers: dict[str, str]
+):
     """Test PUT /api/v1/cocktails/{id} returns 400 for invalid ingredient_id."""
     ing = client.post(
         "/api/v1/ingredients",
         json={"name": "Brandy", "category": "spirit", "description": "Cognac"},
+        headers=auth_headers,
     )
     assert ing.status_code == 201
 
@@ -253,7 +293,9 @@ def test_update_cocktail_with_invalid_ingredient_id(client: TestClient):
             {"ingredient_id": ing.json()["id"], "amount": "2 oz", "is_optional": False}
         ],
     }
-    create_response = client.post("/api/v1/cocktails", json=payload)
+    create_response = client.post(
+        "/api/v1/cocktails", json=payload, headers=auth_headers
+    )
     assert create_response.status_code == 201
     cocktail_id = create_response.json()["id"]
 
@@ -267,17 +309,24 @@ def test_update_cocktail_with_invalid_ingredient_id(client: TestClient):
             {"ingredient_id": 9999, "amount": "2 oz", "is_optional": False}
         ],
     }
-    response = client.put(f"/api/v1/cocktails/{cocktail_id}", json=update_payload)
+    response = client.put(
+        f"/api/v1/cocktails/{cocktail_id}",
+        json=update_payload,
+        headers=auth_headers,
+    )
     assert response.status_code == 400
     assert "not found" in response.json()["detail"].lower()
 
 
 @pytest.mark.parametrize("difficulty", [0, 6, -1])
-def test_create_cocktail_invalid_difficulty(client: TestClient, difficulty: int):
+def test_create_cocktail_invalid_difficulty(
+    client: TestClient, difficulty: int, auth_headers: dict[str, str]
+):
     """Test POST /api/v1/cocktails returns 422 for invalid difficulty values."""
     ing = client.post(
         "/api/v1/ingredients",
         json={"name": "Test Spirit", "category": "spirit", "description": "Test"},
+        headers=auth_headers,
     )
     assert ing.status_code == 201
 
@@ -291,16 +340,19 @@ def test_create_cocktail_invalid_difficulty(client: TestClient, difficulty: int)
             {"ingredient_id": ing.json()["id"], "amount": "1 oz", "is_optional": False}
         ],
     }
-    response = client.post("/api/v1/cocktails", json=payload)
+    response = client.post("/api/v1/cocktails", json=payload, headers=auth_headers)
     assert response.status_code == 422
 
 
 @pytest.mark.parametrize("field", ["name", "instructions", "glass_type"])
-def test_create_cocktail_missing_required_field(client: TestClient, field: str):
+def test_create_cocktail_missing_required_field(
+    client: TestClient, field: str, auth_headers: dict[str, str]
+):
     """Test POST /api/v1/cocktails returns 422 for missing required fields."""
     ing = client.post(
         "/api/v1/ingredients",
         json={"name": "Test Spirit", "category": "spirit", "description": "Test"},
+        headers=auth_headers,
     )
     assert ing.status_code == 201
 
@@ -315,5 +367,74 @@ def test_create_cocktail_missing_required_field(client: TestClient, field: str):
         ],
     }
     del payload[field]
-    response = client.post("/api/v1/cocktails", json=payload)
+    response = client.post("/api/v1/cocktails", json=payload, headers=auth_headers)
     assert response.status_code == 422
+
+
+def test_create_cocktail_requires_token(client: TestClient) -> None:
+    response = client.post(
+        "/api/v1/cocktails",
+        json={
+            "name": "No Auth",
+            "description": "Denied",
+            "instructions": "None",
+            "glass_type": "Rocks",
+            "difficulty": 1,
+            "ingredients": [],
+        },
+    )
+    assert response.status_code == 401
+
+
+def test_list_cocktails_invalid_token_rejected(client: TestClient) -> None:
+    response = client.get(
+        "/api/v1/cocktails", headers={"Authorization": "Bearer not-a-token"}
+    )
+    assert response.status_code == 401
+
+
+def test_list_cocktails_with_valid_token(
+    client: TestClient, auth_headers: dict[str, str]
+) -> None:
+    response = client.get("/api/v1/cocktails", headers=auth_headers)
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
+
+
+def test_reader_cannot_use_admin_delete_user(
+    client: TestClient, auth_headers: dict[str, str]
+) -> None:
+    created = client.post(
+        "/api/v1/auth/register",
+        json={"username": "route-reader-target", "password": "secret123"},
+    )
+    assert created.status_code == 201
+
+    response = client.delete(
+        "/api/v1/auth/users/route-reader-target", headers=auth_headers
+    )
+    assert response.status_code == 403
+
+
+def test_admin_can_use_admin_delete_user(
+    client: TestClient, admin_headers: dict[str, str]
+) -> None:
+    created = client.post(
+        "/api/v1/auth/register",
+        json={"username": "route-admin-target", "password": "secret123"},
+    )
+    assert created.status_code == 201
+
+    response = client.delete(
+        "/api/v1/auth/users/route-admin-target", headers=admin_headers
+    )
+    assert response.status_code == 204
+
+
+def test_auth_me_returns_reader_role(
+    client: TestClient, auth_headers: dict[str, str]
+) -> None:
+    response = client.get("/api/v1/auth/me", headers=auth_headers)
+    assert response.status_code == 200
+    payload: dict[str, Any] = response.json()
+    assert payload["role"] == "reader"

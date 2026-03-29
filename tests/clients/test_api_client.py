@@ -13,13 +13,27 @@ from app.clients import PotionLabClient
 @pytest.fixture
 def sample_data(client: TestClient) -> dict[str, Any]:
     """Create sample ingredients and cocktail for testing."""
+    register = client.post(
+        "/api/v1/auth/register",
+        json={"username": "client-user", "password": "client1234"},
+    )
+    assert register.status_code == 201
+    token_response = client.post(
+        "/api/v1/auth/token",
+        json={"username": "client-user", "password": "client1234"},
+    )
+    assert token_response.status_code == 200
+    auth_headers = {"Authorization": f"Bearer {token_response.json()['access_token']}"}
+
     ing_one = client.post(
         "/api/v1/ingredients",
         json={"name": "Rum", "category": "spirit", "description": "Dark rum"},
+        headers=auth_headers,
     )
     ing_two = client.post(
         "/api/v1/ingredients",
         json={"name": "Lime Juice", "category": "mixer", "description": "Fresh lime"},
+        headers=auth_headers,
     )
 
     payload = {
@@ -42,11 +56,12 @@ def sample_data(client: TestClient) -> dict[str, Any]:
         ],
     }
 
-    cocktail = client.post("/api/v1/cocktails", json=payload)
+    cocktail = client.post("/api/v1/cocktails", json=payload, headers=auth_headers)
 
     return {
         "cocktail_id": cocktail.json()["id"],
         "ingredient_ids": [ing_one.json()["id"], ing_two.json()["id"]],
+        "auth_headers": auth_headers,
     }
 
 
@@ -54,7 +69,9 @@ def test_list_cocktails_returns_list(
     sample_data: dict[str, Any], client: TestClient
 ) -> None:
     """Test that list_cocktails returns a list of dicts."""
-    list_response = client.get("/api/v1/cocktails/")
+    list_response = client.get(
+        "/api/v1/cocktails/", headers=sample_data["auth_headers"]
+    )
     assert list_response.status_code == 200
     result = list_response.json()
 
@@ -85,7 +102,9 @@ def test_get_cocktail_returns_detail(
 ) -> None:
     """Test that get_cocktail returns cocktail dict for valid ID."""
     cocktail_id = sample_data["cocktail_id"]
-    response = client.get(f"/api/v1/cocktails/{cocktail_id}")
+    response = client.get(
+        f"/api/v1/cocktails/{cocktail_id}", headers=sample_data["auth_headers"]
+    )
     assert response.status_code == 200
     result = response.json()
 
@@ -95,9 +114,13 @@ def test_get_cocktail_returns_detail(
     assert "ingredients" in result
 
 
-def test_get_cocktail_returns_none_for_invalid_id(client: TestClient) -> None:
+def test_get_cocktail_returns_none_for_invalid_id(
+    sample_data: dict[str, Any], client: TestClient
+) -> None:
     """Test that get_cocktail returns 404 for non-existent ID."""
-    response = client.get("/api/v1/cocktails/999999")
+    response = client.get(
+        "/api/v1/cocktails/999999", headers=sample_data["auth_headers"]
+    )
     assert response.status_code == 404
 
 

@@ -15,7 +15,20 @@
     "ses_2c610daf7ffe7StP3D05DjmyGG",
     "ses_2c60a1874ffe7io9IT2BiMigdy",
     "ses_2c6069fa6ffeq4NM1q3WQkFcZx",
-    "ses_2c602e015ffeRGkgyIVlFXRdPX"
+    "ses_2c602e015ffeRGkgyIVlFXRdPX",
+    "ses_2c5a9e523ffeWgh1CvOGaUPqfx",
+    "ses_2c5aa1953ffes6NKrfWeJMvsqT",
+    "ses_2c5a9a3f6ffeLI15UZ7PR2qYLZ",
+    "ses_2c5a1e3e7ffeLUEqFAaWubb6B5",
+    "ses_2c59ed3c9ffeTp80du8ZEIxfJ8",
+    "ses_2c59923e5ffeCxWKPnZH7afkF6",
+    "ses_2c59597afffe4J8vV9DHdJhjDR",
+    "ses_2c59536e6ffe0Cjy4zrVOH3M07",
+    "ses_2c5491e8bffe3kKJSMKU3CVYh7",
+    "ses_2c544582fffe5ck8hgzc2cVz9b",
+    "ses_2c53fa010ffe0rzxmAO8Nlmubp",
+    "ses_2c53202b4ffekGgiy4hN1Gz9Hv",
+    "ses_2c532852fffeBtemqPUmEn27IS"
   ],
   "plan_name": "potionlab",
   "agent": "atlas",
@@ -82,6 +95,60 @@
       "agent": "Sisyphus-Junior",
       "category": "unspecified-high",
       "updated_at": "2026-03-29T14:34:36.974Z"
+    },
+    "todo:13": {
+      "task_key": "todo:13",
+      "task_label": "13",
+      "task_title": "Cocktail Browser Page — Table + Detail View + Search",
+      "session_id": "ses_2c5a1e3e7ffeLUEqFAaWubb6B5",
+      "agent": "Sisyphus-Junior",
+      "category": "quick",
+      "updated_at": "2026-03-29T16:13:37.134Z"
+    },
+    "todo:16": {
+      "task_key": "todo:16",
+      "task_label": "16",
+      "task_title": "Flavor Wheel Visualization (Plotly Polar Chart)",
+      "session_id": "ses_2c59923e5ffeCxWKPnZH7afkF6",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-03-29T16:23:49.844Z"
+    },
+    "todo:18": {
+      "task_key": "todo:18",
+      "task_label": "18",
+      "task_title": "EX2 README + Side-by-Side Launch Documentation",
+      "session_id": "ses_2c59597afffe4J8vV9DHdJhjDR",
+      "agent": "Sisyphus-Junior",
+      "category": "writing",
+      "updated_at": "2026-03-29T16:26:30.856Z"
+    },
+    "todo:20": {
+      "task_key": "todo:20",
+      "task_label": "20",
+      "task_title": "Migrate SQLite → PostgreSQL",
+      "session_id": "ses_2c544582fffe5ck8hgzc2cVz9b",
+      "agent": "Sisyphus-Junior",
+      "category": "quick",
+      "updated_at": "2026-03-29T17:55:11.462Z"
+    },
+    "todo:21": {
+      "task_key": "todo:21",
+      "task_label": "21",
+      "task_title": "Docker Compose Setup (API + Postgres + Redis)",
+      "session_id": "ses_2c53fa010ffe0rzxmAO8Nlmubp",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-03-29T18:11:37.847Z"
+    },
+    "todo:22": {
+      "task_key": "todo:22",
+      "task_label": "22",
+      "task_title": "JWT Authentication Module",
+      "session_id": "ses_2c532852fffeBtemqPUmEn27IS",
+      "agent": "Sisyphus-Junior",
+      "category": "deep",
+      "updated_at": "2026-03-29T18:33:47.582Z"
     }
   }
 }

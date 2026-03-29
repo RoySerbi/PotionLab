@@ -1,0 +1,37 @@
+{
+  "username": "bartender_1774809126",
+  "register": {
+    "status": 201,
+    "body": {
+      "id": 1,
+      "username": "bartender_1774809126",
+      "role": "reader"
+    }
+  },
+  "register_duplicate": {
+    "status": 409
+  },
+  "token": {
+    "status": 200,
+    "body": {
+      "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiYXJ0ZW5kZXJfMTc3NDgwOTEyNiIsInJvbGUiOiJyZWFkZXIiLCJleHAiOjE3NzQ4MTA5Mjd9.UXlakkHXZggzRsz7ILz_BbNKpBs8yyTD2eiuVVUQCmw",
+      "token_type": "bearer"
+    }
+  },
+  "protected": {
+    "status": 200,
+    "body": []
+  },
+  "invalid_token": {
+    "status": 401,
+    "body": {
+      "detail": "Could not validate credentials"
+    }
+  },
+  "expired_token": {
+    "status": 401,
+    "body": {
+      "detail": "Could not validate credentials"
+    }
+  }
+}

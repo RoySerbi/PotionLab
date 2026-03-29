@@ -29,6 +29,10 @@ dependencies = [
     "streamlit>=1.55.0",
     "plotly>=6.6.0",
     "psycopg[binary]>=3.3.3",
+    "redis>=7.4.0",
+    "passlib[bcrypt]>=1.7.4",
+    "python-jose[cryptography]>=3.5.0",
+    "bcrypt<4",
 ]
 
 [tool.setuptools]
@@ -71,3 +75,8 @@ markers = [
 [tool.coverage.run]
 source = ["src"]
 omit = ["*/tests/*"]
+
+[dependency-groups]
+dev = [
+    "basedpyright>=1.38.4",
+]

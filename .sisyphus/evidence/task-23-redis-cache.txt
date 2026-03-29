@@ -1,0 +1,10 @@
+=== Cache Operations ===
+SET test=hello: True
+GET test: hello
+DELETE test: True
+GET test (after delete): None
+
+=== Idempotency Operations ===
+is_processed(task123): False
+mark_processed(task123): True
+is_processed(task123) after mark: True

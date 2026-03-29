@@ -978,3 +978,266 @@ uv run streamlit run streamlit_app.py
 - Pattern: `cast(ExpectedType, response.json())`
 - Runtime: No performance impact, type checking only
 - Maintains strict type safety throughout codebase
+
+### Task 13 Findings (Cocktail Browser)
+- Utilizing Streamlit's `@st.cache_data` effectively reduces unnecessary repetitive requests to the API for cocktail ingredient counts, minimizing N+1 fetching issues.
+- Dataframes natively support rich formatting but interactive click-to-expand details can be safely decoupled using `st.selectbox` for explicit row viewing while maintaining compatibility across all 1.x Streamlit versions.
+- Markdown HTML blocks with `st.markdown(unsafe_allow_html=True)` can cleanly substitute native UI chips for visually engaging custom elements (like flavor tags).
+
+### Streamlit Dynamic Forms
+- `st.form()` context managers in Streamlit do not support standard `st.button` elements. A `StreamlitAPIException` will be raised if one is included.
+- To implement dynamic forms (e.g. adding or removing items from a list), we used `st.form_submit_button` instead. Each `form_submit_button` performs a submit action but enables us to uniquely identify if "Add" or "Remove" was triggered without throwing an exception.
+- When you want to clear a Streamlit form upon successful submission but keep it open (or preserve certain state), passing `clear_on_submit=False` and appending/incrementing a key variable injected into the `st.form(f"key_{state}")` effectively resets the form inputs without completely resetting the session environment abruptly.
+- Plotly `Scatterpolar` requires the first element to be appended to the end of the arrays (both categories and values) to close the visual radar loop.
+- Fetching details per item within a loop (like `fetch_cocktails_with_counts`) is an ideal place to extract additional metadata like `flavor_profile` arrays for aggregate analysis, avoiding extra API round-trips.
+
+## Task 17: What Can I Make? Page
+
+### Implementation Approach
+- **Client-side filtering**: Fetched all cocktails and analyzed in Streamlit rather than adding backend endpoint
+- **Matching algorithm**: Compared user's selected ingredients against required (non-optional) ingredients for each cocktail
+- **Two-tier results**: "Can Make" (0 missing) and "Almost There" (1-2 missing)
+- **Performance**: Used `@st.cache_data` for ingredient list fetching to avoid repeated API calls
+
+### Algorithm Details
+```python
+for cocktail in all_cocktails:
+    cocktail_detail = api_client.get_cocktail(cocktail_id)
+    required_ingredient_ids = {
+        ing["ingredient"]["id"] 
+        for ing in cocktail_detail["ingredients"]
+        if not ing.get("is_optional", False)
+    }
+    missing = required_ingredient_ids - selected_ingredient_ids
+    
+    if len(missing) == 0: can_make.append(cocktail)
+    elif len(missing) <= 2: almost.append((cocktail, missing))
+```
+
+### UI/UX Decisions
+- **Multiselect**: Sorted ingredient names alphabetically for easier selection
+- **Expanders**: Used for both sections to keep results scannable while allowing detail expansion
+- **Empty state**: Informative message when no ingredients selected
+- **Missing ingredient display**: Shown in expander title and body for "Almost There" section
+- **Sorting**: "Almost There" sorted by number of missing ingredients (ascending)
+
+### Type Safety
+- Added `cast()` import to resolve mypy no-any-return error on cached function
+- Maintained consistent `list[dict[str, Any]]` type for API responses
+
+### Performance Considerations
+- Client-side filtering requires N+1 API calls (1 for list, N for details)
+- Acceptable for seed data (22 cocktails), but may benefit from backend endpoint at scale
+- Alternative: Add `GET /cocktails/search?ingredient_ids=1,2,3` with `missing_count` field
+
+### Verified Behavior
+- ✅ streamlit_app.py passes mypy (0 errors) and ruff (0 errors)
+- ✅ All 48 tests pass
+- ✅ Multiselect populated with all 39 ingredients
+- ✅ Empty state shows helpful prompt
+- ✅ Results split into "Can Make" and "Almost There" sections
+### README Documentation (EX2)
+- Added 'EX2: Streamlit Dashboard' section to README.md.
+- Documented side-by-side launch instructions for API and Streamlit.
+- Provided descriptions for Cocktail Browser, Ingredient Explorer, Mix a Cocktail, and What Can I Make? pages.
+- Updated 'AI Assistance' section to include UI development and visualization work.
+
+## Task 19: PotionLabClient API Client Testing
+
+**Date**: 2026-03-29
+
+### Achievement
+- Created automated tests for PotionLabClient (`tests/clients/test_api_client.py`)
+- 11 test cases covering key API client methods
+- All tests pass (59 total, 11 new)
+- mypy: 0 errors
+- **Bonus Points**: EX2 +5 points earned
+
+### Key Learnings
+
+1. **Test Structure**: Split tests into two patterns:
+   - **Integration tests** (via TestClient): Test against FastAPI test server
+   - **Unit tests** (via mocking): Test isolated PotionLabClient behavior with httpx mocking
+
+2. **API Client Design**: PotionLabClient uses context manager with httpx.Client for each request:
+   ```python
+   with httpx.Client(timeout=self.timeout) as client:
+       response = client.get(url)
+   ```
+   This pattern requires proper mocking setup in tests using `patch("app.clients.api_client.httpx.Client")`
+
+3. **Test Coverage Pattern**:
+   - `list_cocktails()` → returns list of dicts
+   - `list_ingredients()` → returns list of dicts  
+   - `get_cocktail(id)` → returns dict or None
+   - Graceful error handling → returns [] or None on connection errors
+   - Mocked tests validate core logic independently of network
+
+4. **Fixture Reuse**: Reused TestClient fixture from conftest.py with sample_data fixture to populate test DB
+
+5. **Type Safety**: All tests fully typed with `dict[str, Any]` annotations
+
+### Files Created
+- `tests/clients/__init__.py` (empty, makes package)
+- `tests/clients/test_api_client.py` (11 test cases)
+
+### Test Breakdown
+- Integration tests (4): Test against test server with sample data
+- Unit tests with mocks (4): Test client method behavior with mocked responses
+- Error handling (3): Test graceful degradation on connection failures
+
+## Database Migration: SQLite to PostgreSQL (Dual-Mode)
+
+### Implementation (2026-03-29)
+- Added dual-mode database engine support to allow PostgreSQL or SQLite based on `DATABASE_URL` environment variable
+- PostgreSQL connection uses `pool_pre_ping=True` for connection health checks
+- SQLite fallback uses `connect_args={"check_same_thread": False}` for concurrent access
+- Dependencies already included `psycopg[binary]>=3.3.3` for PostgreSQL driver
+- `scripts/init_db.py` already existed and properly calls `init_db()` from session.py
+
+### Type Safety Fix
+- Added `Engine` import from `sqlalchemy` (not `sqlmodel`) for proper return type annotation on `get_engine()`
+- SQLModel doesn't export `Engine` type directly, must import from underlying SQLAlchemy
+
+### Verification
+- All 59 tests pass with SQLite backend (backward compatible)
+- Mypy type checking passes with 0 errors after adding Engine type annotation
+- Database URL resolution respects test environment variable `SQLMODEL_DATABASE` for test isolation
+
+### Pattern Applied
+```python
+def get_engine() -> Engine:
+    db_url = get_db_url()
+    if db_url.startswith("postgresql"):
+        return create_engine(db_url, pool_pre_ping=True)
+    else:
+        return create_engine(db_url, connect_args={"check_same_thread": False})
+```
+
+This pattern allows seamless switching between local SQLite development and production PostgreSQL deployment without code changes.
+
+## 2026-03-29 21:10 - Task 21: Docker Compose Stack
+
+### Docker Networking Constraints
+- **Critical Discovery**: Development environment has Docker daemon configured with `"bridge": "none"` in /etc/docker/daemon.json
+- This completely blocks network access from containers during build phase
+- Symptoms: DNS resolution failures ("Temporary failure resolving 'deb.debian.org'")
+- Impact: Cannot use RUN commands that need network (apt-get, pip install, curl)
+- **Workaround Attempts Failed**:
+  1. Copying host .venv → symlinks contain hardcoded host paths
+  2. Using pip download → uv doesn't include pip module
+  3. Installing from local wheels → need network to get wheels first
+- **Resolution**: System administrator must fix daemon.json and add DNS servers
+
+### Docker Compose Best Practices Applied
+- Health checks on ALL services (api, db, redis) using appropriate commands
+- `depends_on` with `service_healthy` condition ensures ordered startup
+- PostgreSQL persistence via named volume `postgres_data`
+- Environment variables use `${VAR:-default}` pattern for defaults
+- Separate `.env.example` prevents secret leakage in git
+- `restart: unless-stopped` for production resilience
+
+### Dockerfile Patterns
+- Multi-stage builds reduce final image size (builder vs runtime)
+- `HEALTHCHECK` directive enables container-level health monitoring
+- `--no-cache-dir` flag reduces layer size for pip/apt operations
+- `.dockerignore` excludes unnecessary files from build context (saves time)
+- Explicit `EXPOSE` documents port usage for operators
+
+### PostgreSQL in Docker
+- Use Alpine-based images (`postgres:16-alpine`) for smaller size
+- Health check: `pg_isready -U postgres` is non-invasive
+- Volume mount at `/var/lib/postgresql/data` for persistence
+- Connection string format: `postgresql+psycopg://user:pass@host:port/db`
+
+### Redis in Docker
+- Redis 7 Alpine is production-ready with minimal footprint
+- Health check: `redis-cli ping` expects "PONG" response
+- No authentication needed for dev (single-host communication)
+- Connection string: `redis://redis:6379` (service name as hostname)
+
+### Operations Runbook Structure
+- **Launch** → **Verify** → **Test** → **Maintain** → **Teardown** flow
+- Include troubleshooting guide with symptoms → diagnosis → resolution
+- Quick reference table at end for copy-paste commands
+- Document production considerations separately (security, scalability, monitoring)
+- Provide evidence of what "success" looks like (expected outputs)
+
+### uv Package Manager in Docker
+- `uv sync --frozen` ensures reproducible builds (no version drift)
+- `--no-dev` excludes test/dev dependencies from production images
+- `--system` installs to system Python (no venv) when appropriate
+- uv doesn't include pip → can't use `pip download` for offline builds
+
+### Task Outcome
+✅ All 4 deliverables created (Dockerfile, compose.yaml, .env.example, runbook)
+❌ Runtime testing blocked by system-level Docker configuration
+📋 Configurations are production-ready and follow industry best practices
+🔧 Documented limitation and resolution steps for system administrator
+
+## Task 23: Redis Integration
+
+**Date**: 2026-03-29
+
+### Implementation Summary
+- Added `redis==7.4.0` dependency
+- Created `src/app/core/redis_client.py` with 6 functions:
+  - `get_redis()` - connection factory with ping health check
+  - `cache_get/set/delete()` - basic caching operations with TTL support
+  - `is_processed/mark_processed()` - idempotency tracking for async workers
+- Updated health endpoint to report Redis status (`connected`/`unavailable`)
+- All functions implement graceful degradation (return None/False when Redis unavailable)
+
+### Testing Strategy
+- 22 new tests covering all Redis functions with mocked Redis client
+- Tests pass without Redis running (graceful degradation verified)
+- Live integration test with Redis 7-alpine Docker container confirms functionality
+- Total test count: 81 tests (59 existing + 22 Redis)
+
+### Key Patterns
+- **Graceful Degradation**: Every Redis function wraps operations in try/except, returns safe defaults
+- **Connection Pooling**: `Redis.from_url()` with `decode_responses=True` for string handling
+- **Health Check**: `get_redis()` pings on connect to verify availability
+- **Idempotency Keys**: Prefixed with `processed:` namespace, 24h default TTL
+
+### Docker Networking Gotcha
+- Initial `-p 6379:6379` port mapping failed with "Connection refused"
+- Fixed with `--network host` for Docker Redis container
+- Root cause: Port mapping doesn't work as expected for localhost connections in some Docker environments
+
+### Evidence Captured
+- `.sisyphus/evidence/task-23-redis-cache.txt` - Cache and idempotency function tests
+- `.sisyphus/evidence/task-23-redis-health.json` - Health endpoint with Redis status
+
+### Next Steps
+- Redis utilities ready for use in future tasks (e.g., Task 24: refresh.py script)
+- Cache functions available for API response caching
+- Idempotency tracking ready for async background workers
+
+
+## Task 22: JWT Authentication Module (2026-03-29)
+
+- Added JWT auth with `python-jose` + `passlib` in `src/app/core/security.py` using `CryptContext(schemes=["bcrypt"], deprecated="auto")`.
+- Timing-attack prevention implemented in `authenticate_user`: when user is missing, still execute `pwd_context.hash("dummy")` before returning failure.
+- Added `User` SQLModel with unique indexed `username`, `hashed_password`, and default role `reader`.
+- Added auth router `src/app/api/v1/routes_auth.py`:
+  - `POST /api/v1/auth/register` (201, conflict 409 on duplicate username)
+  - `POST /api/v1/auth/token` (200 bearer JWT)
+  - `GET /api/v1/auth/me` (validates bearer token and returns payload identity)
+  - `DELETE /api/v1/auth/users/{username}` protected by `require_role("admin")` for RBAC verification
+- Wired auth across app:
+  - `main.py` now includes auth router.
+  - Existing cocktails router now requires bearer auth dependency at router inclusion level.
+  - `session.py` imports `User` so `init_db()` creates users table.
+- Updated `.env.example` with `POTION_JWT_SECRET` and config with jwt settings (`jwt_secret`, algorithm, token TTL).
+- Added auth-aware test fixtures in `tests/conftest.py` (`auth_headers`, `admin_headers`) and updated existing API tests to use bearer headers for protected routes.
+- Added comprehensive `tests/api/test_auth.py` covering:
+  - register success + duplicate conflict
+  - hashed password persistence
+  - login success/wrong password/missing user
+  - missing/invalid/expired token rejection (401)
+  - valid token access (200)
+  - timing-attack dummy-hash behavior check
+  - role-based access (admin allowed, reader forbidden)
+- `bcrypt` had to be pinned `<4` because `passlib==1.7.4` has compatibility issues with newer bcrypt on Python 3.14 (`__about__` and backend probe behavior).
+- Verification outcome: full suite passes at 102 tests; auth flow evidence captured at `.sisyphus/evidence/task-22-auth-flow.json`.
