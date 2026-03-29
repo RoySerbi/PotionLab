@@ -1148,7 +1148,7 @@ Wave FINAL (After ALL tasks — verification):
 
 ### === PHASE 2: EX2 — Streamlit Dashboard (Due 18/05/2026) ===
 
-- [ ] 12. Streamlit App Skeleton + API Client Module
+- [x] 12. Streamlit App Skeleton + API Client Module
 
   **What to do**:
   - Create `src/app/clients/api_client.py`:

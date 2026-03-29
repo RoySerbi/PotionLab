@@ -826,3 +826,155 @@ uv run pytest --collect-only -q | grep -E "test_" | wc -l
 - EX1 submission ready: tag `ex1-final` created and verified
 
 ---
+
+---
+
+## Task 12: Streamlit App Skeleton + API Client Module (2026-03-29)
+
+### What Was Built
+
+**File Structure**:
+- `streamlit_app.py` (root level) - Multi-page Streamlit dashboard
+- `src/app/clients/__init__.py` - Module exports
+- `src/app/clients/api_client.py` - PotionLabClient class
+
+**API Client (`PotionLabClient`)**:
+- Synchronous httpx.Client (Streamlit compatible - no async)
+- Base URL from env var `POTIONLAB_API_URL` (default: http://localhost:8000)
+- Timeout: 5 seconds
+- **CRITICAL**: `follow_redirects=True` required for FastAPI trailing slash redirects
+- Graceful error handling: returns `[]` or `None` on failure, logs warnings
+- Methods: `list_cocktails()`, `get_cocktail(id)`, `create_cocktail(data)`, `list_ingredients()`, `create_ingredient(data)`, `list_flavor_tags()`, `search_cocktails_by_ingredients(ids)`
+
+**Streamlit App**:
+- Title: "🍹 PotionLab" with subtitle
+- Navigation: `st.sidebar.radio()` with 4 pages
+- Pages: "Cocktail Browser", "Ingredient Explorer", "Mix a Cocktail", "What Can I Make?"
+- Each page: placeholder with st.info() for future tasks
+- Connection handling: shows `st.success()` with count when API up, `st.warning()` when down
+
+### Critical Lessons
+
+**httpx Redirect Handling**:
+- FastAPI returns 307 redirects for trailing slash mismatch
+- `/api/v1/cocktails/` redirects to `/api/v1/cocktails`
+- **Solution**: Add `follow_redirects=True` to ALL `httpx.Client()` constructors
+- Without this: client fails with "Redirect response '307'" error
+
+**Streamlit + httpx Pattern**:
+- Use synchronous `httpx.Client`, NOT `httpx.AsyncClient`
+- Always use context manager: `with httpx.Client(...) as client:`
+- Timeout recommended: 5 seconds for local API
+- Graceful degradation: empty list/None better than crash
+
+**Multi-Page Layout**:
+- Simple approach: `st.sidebar.radio()` + if/elif routing
+- Alternative: `pages/` directory (more complex, unnecessary for skeleton)
+- Keep page functions separate for clarity
+
+**Error Handling Philosophy**:
+- API client returns empty list `[]` or `None` on failure
+- Streamlit pages check for empty data and show friendly message
+- Log warnings for debugging, don't expose stack traces to users
+
+### Testing Results
+
+**With API Running**:
+- ✓ Loaded 22 cocktails, 39 ingredients, 12 flavor tags
+- ✓ Detail fetch works (get_cocktail)
+- ✓ Search by ingredients works (5 cocktails with Gin)
+- ✓ Streamlit shows success message with count
+
+**With API Down**:
+- ✓ Returns empty lists/None (no exceptions)
+- ✓ Streamlit shows warning message (no crash)
+- ✓ Logs "Connection refused" for debugging
+
+### Dependencies Added
+
+```toml
+streamlit = "^1.55.0"
+```
+
+Plus transitive: altair, pandas, numpy, pyarrow, pydeck, pillow, etc.
+
+### Environment Configuration
+
+Added to `.env.example`:
+```bash
+# Streamlit API Connection
+POTIONLAB_API_URL=http://localhost:8000
+```
+
+### Integration Points for Future Tasks
+
+**Task 13 (Cocktail Browser)**:
+- Use `api_client.list_cocktails()` for table
+- Use `api_client.get_cocktail(id)` for detail view
+- Replace `st.info()` placeholder with `st.table()` and detail modal
+
+**Task 14 (Ingredient Explorer)**:
+- Use `api_client.list_ingredients()` for display
+- Add filtering/sorting UI
+
+**Task 15 (Mix a Cocktail)**:
+- Use `api_client.list_ingredients()` for picker
+- Use `api_client.create_cocktail(data)` for submission
+- Use `st.form()` for input
+
+**Task 17 (What Can I Make?)**:
+- Use `api_client.list_ingredients()` for checkbox list
+- Use `api_client.search_cocktails_by_ingredients(ids)` for filtering
+- Display matching cocktails
+
+### Running the App
+
+**Start API**:
+```bash
+uv run uvicorn app.main:app --app-dir src --host 127.0.0.1 --port 8000
+```
+
+**Seed Database**:
+```bash
+uv run python scripts/seed.py
+```
+
+**Start Streamlit**:
+```bash
+uv run streamlit run streamlit_app.py
+```
+
+**Access**: http://localhost:8501
+
+### Known Issues
+
+- Playwright browser automation not available on CachyOS (requires Ubuntu/Debian)
+- Manual testing via curl and Python scripts used as alternative
+- Streamlit stops when run with `timeout` command (use `nohup` instead)
+
+### Success Metrics
+
+- ✅ API client connects successfully
+- ✅ All CRUD methods implemented
+- ✅ Graceful error handling verified
+- ✅ Multi-page navigation working
+- ✅ Streamlit loads without errors
+- ✅ Ready for page-specific implementations
+
+
+### Post-Completion Type Safety Fix
+
+**MyPy Strict Mode Compliance**:
+- Issue: `httpx.Response.json()` returns `Any` type
+- MyPy error: `no-any-return` when returning directly from typed methods
+- Solution: Use `typing.cast()` to assert return types
+- Example: `return cast(list[dict[str, Any]], response.json())`
+- Applied to all 6 API methods in `api_client.py`
+- Verification: `uv run mypy src/app/clients/` → Success
+
+**Best Practice**:
+- Always cast `response.json()` when declaring specific return types
+- Import: `from typing import Any, cast`
+- Pattern: `cast(ExpectedType, response.json())`
+- Runtime: No performance impact, type checking only
+- Maintains strict type safety throughout codebase

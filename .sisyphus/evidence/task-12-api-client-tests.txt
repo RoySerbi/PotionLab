@@ -1,0 +1,97 @@
+# Task 12: Streamlit App Skeleton + API Client Module - Evidence
+
+## Test Date: 2026-03-29
+
+## 1. API Client Tests (With API Running)
+
+Testing PotionLabClient with API running...
+
+1. Testing list_cocktails():
+   ✓ Loaded 22 cocktails
+   ✓ First cocktail: Negroni
+
+2. Testing list_ingredients():
+   ✓ Loaded 39 ingredients
+
+3. Testing list_flavor_tags():
+   ✓ Loaded 12 flavor tags
+
+4. Testing get_cocktail():
+   ✓ Retrieved: Negroni
+   ✓ Has ingredients: 4 items
+
+5. Testing search_cocktails_by_ingredients():
+   ✓ Found 5 cocktails with Gin
+   ✓ Examples: ['Negroni', 'Martini', 'Clover Club']
+
+✅ All API client tests passed!
+
+## 2. Graceful Error Handling Tests (With API Down)
+
+Testing PotionLabClient with API DOWN...
+
+1. Testing list_cocktails() with API down:
+   ✓ Gracefully returned: []
+   ✓ No exception raised
+
+2. Testing list_ingredients() with API down:
+   ✓ Gracefully returned: []
+
+3. Testing get_cocktail() with API down:
+   ✓ Gracefully returned: None
+
+✅ Graceful error handling verified!
+   The app returns empty lists/None instead of crashing
+
+## 3. Streamlit App Verification
+
+Streamlit app successfully started on http://localhost:8501
+
+Features verified:
+- Multi-page layout with st.sidebar.radio()
+- 4 page options: "Cocktail Browser", "Ingredient Explorer", "Mix a Cocktail", "What Can I Make?"
+- PotionLabClient integration
+- Graceful API connection handling
+- Success/warning messages based on API status
+
+## 4. File Structure
+
+Created files:
+- streamlit_app.py (root level)
+- src/app/clients/__init__.py
+- src/app/clients/api_client.py
+
+## 5. Key Implementation Details
+
+### API Client Features:
+- Uses synchronous httpx.Client (Streamlit compatible)
+- Timeout: 5 seconds
+- Follows redirects automatically (follow_redirects=True)
+- Base URL from POTIONLAB_API_URL env var (default: http://localhost:8000)
+- Graceful error handling: returns empty list/None on failure
+- Logging with warnings for failed requests
+
+### Methods Implemented:
+- list_cocktails() -> list[dict]
+- get_cocktail(id) -> dict | None
+- create_cocktail(data) -> dict | None
+- list_ingredients() -> list[dict]
+- create_ingredient(data) -> dict | None
+- list_flavor_tags() -> list[dict]
+- search_cocktails_by_ingredients(ids) -> list[dict]
+
+### Streamlit App Features:
+- 🍹 PotionLab title with emoji
+- Sidebar navigation with 4 pages
+- Each page has placeholder content
+- API connection status messages
+- Graceful handling when API is down
+
+## Result: ✅ PASSED
+
+All requirements met:
+✓ Streamlit app skeleton created
+✓ Multi-page layout working
+✓ API client module functional
+✓ Graceful error handling
+✓ Ready for Tasks 13-17 (page implementations)
