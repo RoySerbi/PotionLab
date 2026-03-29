@@ -1520,3 +1520,102 @@ Created `scripts/demo.sh` - comprehensive end-to-end demo showcasing all PotionL
 - Separate AI microservice documentation helps clarify decoupling and scaling strategies.
 - Runbooks are essential for Docker Compose stacks to ensure reproducible deployments.
 - Updated README to clearly show service ports and required environment variables (like GOOGLE_API_KEY).
+
+## Task 30: EX3 Integration Test Suite (2026-03-29)
+
+**Integration Test Patterns**:
+- Created `tests/integration/test_compose_stack.py` with 4 tests:
+  - `test_api_health_check` - Health endpoint verification
+  - `test_auth_flow_end_to_end` - Full CRUD flow with JWT auth
+  - `test_ai_mixologist_endpoint` - AI service schema validation (conceptual)
+  - `test_what_can_i_make_integration` - Ingredient matching pattern
+- Integration tests use real HTTP calls via `TestClient`
+- Conceptual tests demonstrate patterns for services requiring docker-compose
+
+**Auth Security Test Patterns**:
+- Created `tests/services/test_auth.py` with 4 tests:
+  - `test_password_hashing_roundtrip` - Bcrypt hash/verify cycle
+  - `test_jwt_creation_and_validation` - JWT lifecycle
+  - `test_expired_token_rejected` - Expiration enforcement
+  - `test_timing_attack_prevention` - Constant-time verification ✓ CRITICAL
+- **Timing Attack Test**: Uses `timeit` module to measure 100 iterations
+  - Verifies correct/incorrect password timing within 20% threshold
+  - Ensures bcrypt provides constant-time comparison
+  - Prevents username enumeration and password guessing
+
+**Test Count**: 123 tests passing (115 existing + 8 new)
+**Coverage**: 91% (exceeds 80% requirement)
+**Security**: Timing attack resistance verified via statistical analysis
+
+**Key Learnings**:
+1. **Cocktail API Schema** (from debugging):
+   - `difficulty` is `int` (not `str` like "easy", "intermediate")
+   - `ingredients` requires `ingredient_id` + `amount` (not `name` + `quantity` + `unit`)
+   - Must create ingredients first, then reference by ID
+   - Example: `{"ingredient_id": 1, "amount": "60ml", "is_optional": False}`
+
+2. **Test Fixtures for Integration Tests**:
+   - Use `session` fixture when creating users directly in DB
+   - Use `editor_headers` fixture for authenticated requests
+   - Use `client` fixture (TestClient) for HTTP calls
+   - `StaticPool` already configured in conftest.py for SQLite threading
+
+3. **Timing Attack Test Implementation**:
+   - Must use `timeit.timeit()` for accurate measurements
+   - Run 100+ iterations to get stable averages
+   - Compare correct vs incorrect password timing
+   - Assert ratio < 20% (typical threshold for constant-time)
+   - Critical for OWASP security compliance
+
+4. **Integration Test Best Practices**:
+   - Mark with `@pytest.mark.anyio` for async support
+   - Use descriptive docstrings (required by task)
+   - Create test data (ingredients) before cocktails
+   - Use detail endpoint (GET /cocktails/{id}) for full object retrieval
+   - List endpoint doesn't include nested ingredients
+
+5. **Coverage Insights**:
+   - `app.clients.api_client` has low coverage (54%) - client-side code not used in API tests
+   - `app.core.security` has 88% coverage - uncovered lines are error paths (unreachable in test scenarios)
+   - Core models, schemas, and services have 93-100% coverage
+
+**Files Created**:
+- `tests/integration/test_compose_stack.py` (254 lines, 4 tests)
+- `tests/services/test_auth.py` (145 lines, 4 tests)
+- `.sisyphus/evidence/task-30-integration-tests.txt` (detailed evidence report)
+
+**Verification Commands**:
+```bash
+uv run pytest -q                                    # All tests: 123 passed
+uv run pytest --cov=src --cov-report=term-missing  # Coverage: 91%
+uv run mypy src                                     # Type check: clean
+uv run ruff check .                                 # Linting: clean
+```
+
+
+### Phase 2 Type Error Fix (2026-03-29)
+
+**Issue**: basedpyright rejected `# type: ignore[arg-type]` comments in test_ai_mixologist_endpoint()
+- Dictionary access returns union type `str | list[dict[str, str]] | list[str]`
+- Type checker couldn't narrow to specific types needed for CocktailSuggestion
+
+**Solution**: Use `typing.cast()` instead of `# type: ignore`
+```python
+from typing import cast
+
+suggestion = CocktailSuggestion(
+    name=cast(str, mock_ai_response["name"]),
+    ingredients=cast(list[dict[str, str]], mock_ai_response["ingredients"]),
+    instructions=cast(str, mock_ai_response["instructions"]),
+    flavor_profile=cast(list[str], mock_ai_response["flavor_profile"]),
+    why_this_works=cast(str, mock_ai_response["why_this_works"]),
+)
+```
+
+**Key Learning**: 
+- `# type: ignore` comments don't work with basedpyright for complex type mismatches
+- `cast()` is the correct way to tell the type checker about runtime guarantees
+- Always prefer `cast()` over `# type: ignore` for explicit type narrowing
+
+**Verification**: 0 type errors, 123 tests passing, mypy clean
+

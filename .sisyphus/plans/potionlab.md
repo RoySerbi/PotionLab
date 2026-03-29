@@ -2159,7 +2159,7 @@ Wave FINAL (After ALL tasks — verification):
   **Commit**: YES
   - Message: `docs: add EX3-notes with architecture, decisions, and runbook`
 
-- [ ] 30. EX3 Integration Test Suite
+- [x] 30. EX3 Integration Test Suite
 
   **What to do**:
   - Create `tests/integration/test_compose_stack.py`:

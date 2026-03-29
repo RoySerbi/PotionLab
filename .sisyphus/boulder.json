@@ -34,7 +34,8 @@
     "ses_2c507d9f7ffe6ulSfyi08MZwIS",
     "ses_2c508d24cffeJJGFw6jW4XzpE6",
     "ses_2c4e9f3fdffe21a7pRCWNtTKRY",
-    "ses_2c4dbd37cffe8WTGygwCtIG5Z6"
+    "ses_2c4dbd37cffe8WTGygwCtIG5Z6",
+    "ses_2c4d8925fffeFQKlU9UsQ6iMHM"
   ],
   "plan_name": "potionlab",
   "agent": "atlas",
@@ -191,6 +192,15 @@
       "agent": "Sisyphus-Junior",
       "category": "writing",
       "updated_at": "2026-03-29T19:50:04.385Z"
+    },
+    "todo:30": {
+      "task_key": "todo:30",
+      "task_label": "30",
+      "task_title": "EX3 Integration Test Suite",
+      "session_id": "ses_2c4d8925fffeFQKlU9UsQ6iMHM",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-03-29T20:03:07.504Z"
     }
   }
 }
