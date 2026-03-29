@@ -58,6 +58,43 @@ The API is versioned under `/api/v1/`.
 | **PUT** | `/api/v1/cocktails/{id}` | Update cocktail recipe or metadata |
 | **DELETE** | `/api/v1/cocktails/{id}` | Remove a cocktail from the library |
 
+## EX2: Streamlit Dashboard
+
+The Streamlit dashboard provides a visual interface for the PotionLab API, enabling flavor discovery and recipe management.
+
+### Launching the Application
+To run the full stack, you'll need two terminal windows:
+
+```bash
+# Terminal 1: Start the Backend API
+uv run uvicorn app.main:app --reload --app-dir src
+
+# Terminal 2: Start the Streamlit Dashboard
+uv run streamlit run streamlit_app.py
+```
+
+### Dashboard Features
+
+#### Cocktail Browser
+- Browse the full cocktail library with search and difficulty filters.
+- Visualize collection-wide flavor trends with an aggregate flavor wheel.
+- View detailed recipe information and per-cocktail flavor radar charts.
+
+#### Ingredient Explorer
+- Explore the ingredient database via a categorized grid layout.
+- Filter ingredients by type and view associated flavor profiles.
+- Discover which cocktails use a specific ingredient with one-click filtering.
+
+#### Mix a Cocktail
+- A dynamic, multi-step form for creating new cocktail recipes.
+- Real-time ingredient row management (add/remove).
+- Built-in form validation and recipe persistence to the backend.
+
+#### What Can I Make?
+- Select ingredients from your home bar to see what you can mix.
+- Matches are split between recipes you can make immediately and those where you're "Almost There" (missing 1-2 items).
+- Missing ingredients are highlighted to help plan your next grocery trip.
+
 ## Testing
 
 Run the full test suite (48 tests covering CRUD operations and business logic):
@@ -79,7 +116,7 @@ An `examples.http` file is provided for use with the [VS Code REST Client](https
 This project was developed using AI-assisted engineering practices. 
 
 - **Architectural Design**: AI was used to draft the initial SQLModel schema and many-to-many relationship structures.
-- **Implementation**: Core service logic and FastAPI route handlers were generated and refined based on project-specific requirements.
+- **Implementation**: Core service logic, FastAPI route handlers, and the Streamlit UI (including Plotly visualizations and dynamic forms) were generated and refined based on project-specific requirements.
 - **Testing**: The comprehensive test suite was automated to ensure high coverage and edge-case handling.
 - **Documentation**: This README and the API documentation were drafted with AI assistance to ensure clarity and adherence to submission guidelines.
 
