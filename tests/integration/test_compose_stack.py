@@ -6,14 +6,22 @@ They assume services are running locally (docker compose up).
 
 from __future__ import annotations
 
-from typing import cast
-
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 
 from app.core.security import hash_password
 from app.models import User
+
+
+def _services_available() -> bool:
+    """Check if the Docker Compose services are running."""
+    try:
+        response = httpx.get("http://localhost:8001/health", timeout=2.0)
+        return response.status_code == 200
+    except (httpx.ConnectError, httpx.TimeoutException):
+        return False
 
 
 @pytest.mark.anyio
@@ -124,6 +132,7 @@ async def test_auth_flow_end_to_end(
     assert len(retrieved_cocktail["ingredients"]) == 2
 
 
+@pytest.mark.integration
 @pytest.mark.anyio
 async def test_ai_mixologist_endpoint(
     client: TestClient,
@@ -134,78 +143,46 @@ async def test_ai_mixologist_endpoint(
     This test verifies the AI service integration by calling the /mix endpoint
     with sample ingredients and checking the response structure matches
     the CocktailSuggestion schema.
-
-    Note: This is a conceptual test that mocks or stubs the AI service response.
-    In production, you'd use httpx to call http://localhost:8001/mix directly.
     """
-    # For this integration test, we're testing that the endpoint exists and
-    # has proper auth/rate limiting. The actual AI service is tested separately.
-    # This test demonstrates the pattern for integration testing with external services.
+    if not _services_available():
+        pytest.skip("Docker Compose services not running")
 
-    # Since we're using TestClient (not httpx.AsyncClient), and the actual AI service
-    # requires docker-compose to be running, we'll test the pattern here conceptually.
-    # In a real scenario, you'd use:
-    #
-    # async with httpx.AsyncClient() as http_client:
-    #     response = await http_client.post(
-    #         "http://localhost:8001/mix",
-    #         json={
-    #             "ingredients": ["gin", "vermouth", "bitters"],
-    #             "mood": "sophisticated",
-    #             "preferences": "stirred not shaken",
-    #         },
-    #     )
-    #     assert response.status_code == 200
-    #     data = response.json()
-    #     assert "name" in data
-    #     assert "ingredients" in data
-    #     assert "instructions" in data
-    #     assert "flavor_profile" in data
-    #     assert "why_this_works" in data
-
-    # For now, we'll verify the schema expectations in a unit-test style:
-    from ai_service.schemas import CocktailSuggestion
-
-    # Simulate a valid AI response structure
-    mock_ai_response = {
-        "name": "Classic Martini",
-        "ingredients": [
-            {"ingredient": "Gin", "amount": "60ml"},
-            {"ingredient": "Dry Vermouth", "amount": "10ml"},
-        ],
-        "instructions": "Stir with ice for 30 seconds, strain into chilled glass",
-        "flavor_profile": ["botanical", "crisp", "sophisticated"],
-        "why_this_works": "The gin's botanicals complement the vermouth's herbal notes",
-    }
-
-    suggestion = CocktailSuggestion(
-        name=cast(str, mock_ai_response["name"]),
-        ingredients=cast(list[dict[str, str]], mock_ai_response["ingredients"]),
-        instructions=cast(str, mock_ai_response["instructions"]),
-        flavor_profile=cast(list[str], mock_ai_response["flavor_profile"]),
-        why_this_works=cast(str, mock_ai_response["why_this_works"]),
-    )
-    assert suggestion.name == "Classic Martini"
-    assert len(suggestion.ingredients) == 2
-    assert len(suggestion.flavor_profile) == 3
-    assert suggestion.why_this_works is not None
+    async with httpx.AsyncClient() as http_client:
+        response = await http_client.post(
+            "http://localhost:8001/mix",
+            json={
+                "ingredients": ["gin", "vermouth", "bitters"],
+                "mood": "sophisticated",
+                "preferences": "stirred not shaken",
+            },
+            timeout=15.0,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert "name" in data
+        assert "ingredients" in data
+        assert "instructions" in data
+        assert "flavor_profile" in data
+        assert "why_this_works" in data
+        assert len(data["ingredients"]) > 0
 
 
+@pytest.mark.integration
 @pytest.mark.anyio
 async def test_what_can_i_make_integration(
     client: TestClient,
     editor_headers: dict[str, str],
 ) -> None:
-    """Test 'What Can I Make?' feature with AI substitution (conceptual).
+    """Test 'What Can I Make?' feature with real AI substitution.
 
-    This test demonstrates the integration pattern for the feature that:
-    1. Takes user's available ingredients
-    2. Finds matching cocktails from database
-    3. Optionally uses AI service for ingredient substitutions
-
-    Since this feature involves complex business logic and potentially AI calls,
-    this test verifies the pattern rather than full end-to-end execution.
+    This test verifies:
+    1. Creates ingredients and a cocktail
+    2. Simulates user having a subset of ingredients
+    3. Calls the AI service to suggest a substitution for the missing ingredient
     """
+    if not _services_available():
+        pytest.skip("Docker Compose services not running")
+
     tequila_response = client.post(
         "/api/v1/ingredients",
         json={"name": "Tequila", "category": "spirit", "description": "Agave spirit"},
@@ -264,7 +241,7 @@ async def test_what_can_i_make_integration(
     test_margarita = detail_response.json()
     assert test_margarita["name"] == "Test Margarita"
 
-    user_ingredients = {"Tequila", "Lime Juice", "Cointreau"}
+    user_ingredients = {"Tequila", "Lime Juice"}
     required_ingredients = {ing["name"] for ing in test_margarita["ingredients"]}
 
     if user_ingredients >= required_ingredients:
@@ -274,4 +251,22 @@ async def test_what_can_i_make_integration(
     else:
         match_type = "no_match"
 
-    assert match_type in ["almost", "exact"], f"Expected close match, got {match_type}"
+    assert match_type == "almost", f"Expected almost match, got {match_type}"
+
+    # Verify AI substitution for the missing ingredient
+    missing = required_ingredients - user_ingredients
+    async with httpx.AsyncClient() as http_client:
+        ai_response = await http_client.post(
+            "http://localhost:8001/mix",
+            json={
+                "ingredients": list(user_ingredients),
+                "mood": "creative",
+                "preferences": f"Substitute for {', '.join(missing)} in a Margarita",
+            },
+            timeout=15.0,
+        )
+        assert ai_response.status_code == 200
+        ai_data = ai_response.json()
+        assert ai_data["name"]
+        assert len(ai_data["ingredients"]) > 0
+        assert ai_data["instructions"]

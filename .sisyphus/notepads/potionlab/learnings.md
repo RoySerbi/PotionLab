@@ -1807,3 +1807,18 @@ None - refactor was straightforward application of multi-stage pattern per requi
 
 - Original comment in Dockerfile noted: "For production with network access, use multi-stage build with `uv sync` inside container" — this implementation fulfills that requirement
 - Task 21 completion requirement: Multi-stage build for optimized image size
+
+## [$(date +"%Y-%m-%d %H:%M:%S")] Task: Integration Tests Real Services (Blocker #6)
+
+### Pattern Applied
+- httpx.AsyncClient for real HTTP calls to localhost:8001 (AI service)
+- pytest.skip() for graceful degradation when services unavailable
+- @pytest.mark.integration for tests requiring live stack
+- _services_available() helper checks http://localhost:8001/health
+- Registered `integration` pytest marker in `pyproject.toml`
+
+### Gotchas
+- httpx timeout must be short (2-3s) to avoid hanging on connection errors
+- Must use async with httpx.AsyncClient() (not sync Client)
+- pytest.skip() must be called BEFORE any assertions or setup
+- Without registering the `integration` marker in `pyproject.toml`, pytest generates PytestUnknownMarkWarning
