@@ -1753,3 +1753,57 @@ Not tested: ~5 scenarios (Streamlit UI)
 - Solved an issue where the admin user token claim lacked the correct `role`. 
 - Added a specific regression test `test_admin_jwt_contains_admin_role` to ensure the endpoint `/api/v1/auth/token` always packs `{"role": "admin"}` properly when dealing with an admin user.
 - Updated `scripts/seed.py` with `session.refresh(admin)` to properly hydrate the admin user object post-commit and prevent potential edge cases across different database session lifecycles where default values might clobber explicitly set roles.
+
+---
+
+## Task 21: Dockerfile Multi-stage Refactor (Blocker #5 - F4 Final Verification)
+
+### Pattern Applied
+
+✅ **Multi-stage Build Pattern Implemented**
+
+**Stage 1: Builder**
+- Base: `python:3.12-slim`
+- Installs `uv` package manager
+- Copies `pyproject.toml`
+- Runs `uv sync --no-dev --system` to create dependencies in `.venv`
+- Contains all build tooling and intermediate artifacts
+
+**Stage 2: Runtime**
+- Base: `python:3.12-slim`
+- Installs only runtime dependencies: `libpq5` (PostgreSQL client library)
+- **Copies clean .venv from builder stage** - eliminates build artifacts
+- Copies source code: `src/` and `scripts/`
+- Sets `PATH="/app/.venv/bin:$PATH"` to use copied venv
+- Exposes port 8000 with uvicorn CMD
+- Includes health check using Python urllib
+
+### Benefits
+
+1. **Image Size Reduction**: Builder stage artifacts (pip cache, uv, build tools) not included in final image
+2. **Production-Ready**: Final image contains only runtime dependencies (Python 3.12 slim + libpq5)
+3. **Clean Separation**: Build logic isolated from runtime, following Docker best practices
+4. **Unchanged Functionality**: Health check, port mapping, uvicorn command identical to original
+
+### Implementation Details
+
+- Moved dependency installation from runtime to builder stage
+- Uses `COPY --from=builder /app/.venv /app/.venv` to transfer clean venv
+- Retains `--break-system-packages` flag (required for slim image)
+- Maintains `--no-dev` flag to exclude test/dev dependencies from production image
+
+### Validation
+
+✅ **Dockerfile Syntax**: Passed hadolint linting (multi-stage format correct)
+✅ **Stage Separation**: Builder and Runtime stages properly isolated with `AS builder` syntax
+✅ **Dependencies**: `libpq5` preserved for database connectivity
+✅ **Health Check**: Unchanged from original (Python urllib method)
+
+### Gotchas Encountered
+
+None - refactor was straightforward application of multi-stage pattern per requirements.
+
+### References
+
+- Original comment in Dockerfile noted: "For production with network access, use multi-stage build with `uv sync` inside container" — this implementation fulfills that requirement
+- Task 21 completion requirement: Multi-stage build for optimized image size

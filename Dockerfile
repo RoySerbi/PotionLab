@@ -1,22 +1,43 @@
-# Simplified production image for PotionLab API
-# NOTE: This version uses host .venv due to Docker network restrictions in dev environment
-# For production with network access, use multi-stage build with `uv sync` inside container
+# Multi-stage production image for PotionLab API
+# Stage 1: Builder - Install dependencies and create virtual environment
+# Stage 2: Runtime - Minimal runtime with only necessary artifacts
 
+# ============================================================================
+# STAGE 1: Builder
+# ============================================================================
+FROM python:3.12-slim AS builder
+
+WORKDIR /app
+
+# Install build tools (uv for dependency management)
+RUN pip install uv --break-system-packages
+
+# Copy dependency files
+COPY pyproject.toml ./
+
+# Sync dependencies into a clean virtual environment
+# --no-dev excludes development dependencies for production
+RUN uv sync --no-dev --system
+
+# ============================================================================
+# STAGE 2: Runtime
+# ============================================================================
 FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install runtime dependencies
+# Install only runtime dependencies (PostgreSQL client library)
 RUN apt-get update && apt-get install -y --no-install-recommends libpq5 && rm -rf /var/lib/apt/lists/* || true
+
+# Copy virtual environment from builder stage
+COPY --from=builder /app/.venv /app/.venv
 
 # Copy application source code
 COPY src/ ./src/
 COPY scripts/ ./scripts/
-COPY pyproject.toml ./
 
-# Install uv and sync dependencies using system Python
-# This works because we're using the slim image which matches the dev Python version
-RUN pip install uv --break-system-packages && uv sync --no-dev --system
+# Set Python path to use the copied virtual environment
+ENV PATH="/app/.venv/bin:$PATH"
 
 # Expose API port
 EXPOSE 8000
