@@ -6,7 +6,12 @@
     "ses_2c6388afcffeOA0Kx41qFpzQEQ",
     "ses_2c623b68dffevw8Opd6itSMd4Y",
     "ses_2c623850effemgyoTSc69IAXLZ",
-    "ses_2c623e306ffeuE8FdJrPRGQgkr"
+    "ses_2c623e306ffeuE8FdJrPRGQgkr",
+    "ses_2c61e725dffelfpfIvFRLA7tkW",
+    "ses_2c61e258bffevLYPqQcdgvEAnb",
+    "ses_2c61cdbdbffe7cAN3pte8V3n3A",
+    "ses_2c61d7eedffeaknPh0XZ7t2Lwl",
+    "ses_2c6163b31ffesgli3b4CGI4NI6"
   ],
   "plan_name": "potionlab",
   "agent": "atlas",
@@ -28,6 +33,15 @@
       "agent": "Sisyphus-Junior",
       "category": "unspecified-high",
       "updated_at": "2026-03-29T13:53:27.188Z"
+    },
+    "todo:5": {
+      "task_key": "todo:5",
+      "task_label": "5",
+      "task_title": "Ingredient CRUD Routes + Service Layer",
+      "session_id": "ses_2c6163b31ffesgli3b4CGI4NI6",
+      "agent": "Sisyphus-Junior",
+      "category": "quick",
+      "updated_at": "2026-03-29T14:07:40.950Z"
     }
   }
 }

@@ -621,7 +621,7 @@ Wave FINAL (After ALL tasks — verification):
   - Files: `src/app/core/config.py, src/app/db/session.py, src/app/main.py, tests/conftest.py`
   - Pre-commit: `uv run pytest -q`
 
-- [ ] 5. Ingredient CRUD Routes + Service Layer
+- [x] 5. Ingredient CRUD Routes + Service Layer
 
   **What to do**:
   - Create `src/app/services/ingredient_service.py`:
@@ -704,7 +704,7 @@ Wave FINAL (After ALL tasks — verification):
   - Files: `src/app/services/ingredient_service.py, src/app/api/v1/routes_ingredients.py, src/app/main.py`
   - Pre-commit: `uv run ruff check .`
 
-- [ ] 6. FlavorTag CRUD Routes + Service Layer
+- [x] 6. FlavorTag CRUD Routes + Service Layer
 
   **What to do**:
   - Create `src/app/services/flavor_tag_service.py`:
@@ -775,7 +775,7 @@ Wave FINAL (After ALL tasks — verification):
   - Files: `src/app/services/flavor_tag_service.py, src/app/api/v1/routes_flavor_tags.py, src/app/main.py`
   - Pre-commit: `uv run ruff check .`
 
-- [ ] 7. Cocktail CRUD Routes + Service with Nested Ingredient Management
+- [x] 7. Cocktail CRUD Routes + Service with Nested Ingredient Management
 
   **What to do**:
   - Create `src/app/services/cocktail_service.py`:
@@ -866,7 +866,7 @@ Wave FINAL (After ALL tasks — verification):
   - Files: `src/app/services/cocktail_service.py, src/app/api/v1/routes_cocktails.py, src/app/main.py`
   - Pre-commit: `uv run ruff check .`
 
-- [ ] 8. Seed Script with 20+ Real Cocktails
+- [x] 8. Seed Script with 20+ Real Cocktails
 
   **What to do**:
   - Create `data/seed_cocktails.json` with 20+ real cocktail recipes:

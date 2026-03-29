@@ -371,3 +371,266 @@ Task 3 (Pydantic Schemas) needs:
 - Composite PK constraints enforced ✓
 - Barrel file exporting models ✓
 - All unblocked to proceed
+
+---
+
+## Task 7: Cocktail CRUD + Nested Ingredient Management
+
+### Key Learnings
+
+- Nested cocktail create/update is safest with a single transaction: validate ingredient IDs first, `flush()` to get cocktail ID, add link rows, then commit once.
+- Atomic replacement pattern for updates works cleanly for link tables: fetch existing `CocktailIngredient` rows, delete them, add new rows from payload, commit.
+- Flat list/detail split avoids lazy-loading/session issues:
+  - `GET /cocktails` returns `CocktailRead` only.
+  - `GET /cocktails/{id}` builds `CocktailReadFull` by composing cocktail + explicit ingredient/link queries.
+- Ingredient existence validation is best done as a set-based query (`IN` lookup) to avoid N+1 DB round-trips and to return all missing IDs in one 400 error.
+- For nested detail responses, constructing the nested payload in the route layer avoids mutating SQLModel instances with undeclared dynamic fields.
+
+### QA Results
+
+- `uv run ruff check src` passes.
+- `uv run pytest -q` passes with cocktail nested create test included.
+- Manual curl flow verified: create/list/detail/update/delete, 404 for missing cocktail, and 400 for invalid ingredient ID.
+- Evidence:
+  - `.sisyphus/evidence/task-7-cocktail-crud.txt`
+  - `.sisyphus/evidence/task-7-nested-structure.json`
+  - `.sisyphus/evidence/task-7-pytest.txt`
+
+## Task 5: Ingredient CRUD Routes + Service Layer
+
+### Service Layer Pattern
+- Service functions accept `session: Session` as first parameter
+- Service functions return SQLModel instances (not Pydantic)
+- Routes convert service results to Pydantic schemas via `.model_validate()`
+- Clear separation: service = business logic, routes = HTTP concerns
+
+### Route Registration
+- Router created with `APIRouter(tags=["ingredients"])`
+- Mounted in main.py: `app.include_router(ingredients.router, prefix="/api/v1")`
+- All routes automatically prefixed with `/api/v1`
+
+### Schema Selection Pattern
+- **List endpoints** (`GET /ingredients`): Use flat `IngredientRead` schema (no relationships)
+- **Detail endpoints** (`GET /ingredients/{id}`): Use nested `IngredientReadWithTags` schema (includes flavor_tags)
+- Prevents SQLAlchemy lazy-load errors outside session scope
+
+### HTTP Status Codes
+- POST (create): 201 Created
+- GET (read): 200 OK
+- PUT (update): 200 OK
+- DELETE: 204 No Content
+- Not found: 404 with HTTPException
+
+### Dependency Injection
+- `session: Session = Depends(get_session)` in all route handlers
+- FastAPI automatically provides session from dependency
+- Session lifecycle managed by generator (auto-cleanup)
+
+### Error Handling
+- Service returns `None` for not found (read_by_id, update, delete)
+- Route raises `HTTPException(status_code=404, detail="...")` when None
+- Consistent error message format: "Ingredient with id {id} not found"
+
+### Testing Insights
+- 10 test functions covering all CRUD + error cases
+- Tests use conftest.py fixtures (session, client with dependency override)
+- All 20 tests pass (including existing model tests)
+- Manual curl verification confirms nested schema behavior
+
+### What Worked Well
+- Clean separation between service and route layers
+- Pydantic `.model_validate()` seamlessly converts SQLModel to schema
+- FastAPI OpenAPI docs auto-generated from route signatures
+- Dependency injection eliminates boilerplate session management
+
+---
+
+## Task 8: Seed Script with 20+ Real Cocktails
+
+### Key Learnings
+
+**1. Idempotency Pattern with IntegrityError**
+- Seed scripts must be safe to run multiple times without creating duplicates
+- Use `try/except IntegrityError` pattern with unique constraints (NOT manual checks)
+- Commit immediately after each INSERT to trigger constraint validation early
+- Pattern:
+  ```python
+  from sqlalchemy.exc import IntegrityError
+  
+  try:
+      obj = Model(**data)
+      session.add(obj)
+      session.commit()
+      created += 1
+  except IntegrityError:
+      session.rollback()  # Skip existing record
+  ```
+- Running seed script twice: first run creates 12 tags, 39 ingredients, 22 cocktails; second run creates 0 of each (fully idempotent)
+
+**2. Data Creation Order (Respect Foreign Key Dependencies)**
+- Create entities in strict order:
+  1. FlavorTag (no dependencies)
+  2. Ingredient (no dependencies)
+  3. IngredientFlavorTag links (depends on FlavorTag + Ingredient)
+  4. Cocktail (no dependencies)
+  5. CocktailIngredient links (depends on Cocktail + Ingredient)
+- Creating links before entities they reference causes foreign key violations
+- Must call `session.refresh(obj)` after commit to get auto-generated IDs for linking
+
+**3. Querying by Name for Link Tables**
+- Link tables need entity IDs, not names
+- Cannot hardcode IDs (they're auto-generated during seed)
+- Query strategy: `session.exec(select(Ingredient).where(Ingredient.name == "Gin")).first()`
+- Only add link if entity exists (check for None)
+- Pattern:
+  ```python
+  ingredient = session.exec(select(Ingredient).where(Ingredient.name == "Gin")).first()
+  if ingredient:
+      link = CocktailIngredient(
+          cocktail_id=cocktail.id,
+          ingredient_id=ingredient.id,
+          amount="2 oz",
+          is_optional=False
+      )
+      session.add(link)
+      session.commit()
+  ```
+
+**4. Real Cocktail Data & Recipes**
+- Use accurate IBA standards and classic recipes (not placeholder data)
+- Essential cocktails: Negroni, Old Fashioned, Martini, Daiquiri, Margarita, Mojito, Manhattan, Cosmopolitan, Sazerac
+- Modern classics: Espresso Martini, Penicillin, Aperol Spritz, Moscow Mule, Dark & Stormy
+- IBA official: Mai Tai, Clover Club, Aviation, Last Word, Boulevardier, Sidecar, Pisco Sour
+- Each cocktail includes: name, description, instructions (full recipe), glass type, difficulty (1-5)
+- Ingredient amounts in standard units (oz/ml): e.g., "2 oz", "0.75 oz", "12 leaves", "1 sprig"
+- 22 cocktails ≥ 20 target, covering difficulty range 1-4 and diverse glass types
+
+**5. Flavor Tag Association Strategy**
+- Ingredients tagged with 1-3 flavor tags based on taste profile
+- Examples:
+  - Gin: Citrus, Herbal, Floral
+  - Bourbon: Sweet, Smoky, Spicy
+  - Rum Light: Fruity, Fresh
+  - Lime Juice: Citrus, Fresh
+  - Mint: Minty, Fresh
+- 12 total tags across categories: Fresh, Aromatic, Complex, Bold
+- Enables future recipe filtering by flavor profile (e.g., "show me citrus-forward cocktails")
+
+**6. Ingredient Categorization**
+- Spirit (gin, vodka, rum, bourbon, whiskey, tequila, mezcal, brandy, cognac, scotch)
+- Fortified/Liqueur (vermouth, Campari, Cointreau, Kahlua, Chartreuse, Fernet-Branca)
+- Juice (lime, lemon, orange, cranberry)
+- Mixer (ginger beer, tonic, soda water, cola, simple syrup, espresso)
+- Garnish (mint, lime wheel, lemon twist, orange peel, olive, cherry)
+- Spice (bitters, sugar)
+- 39 total ingredients ≥ 30 target
+
+**7. Script Structure & Output**
+- Use `get_db_url()` to respect `SQLMODEL_DATABASE` env var for test isolation
+- Call `create_engine(get_db_url())` directly (not session.engine from app)
+- Print progress messages: "Created X flavor tags", "Created Y ingredients", "Created Z cocktails"
+- Use emoji for visual appeal: 🍹 🥃 ✓ ✨
+- Executable via: `uv run python scripts/seed.py`
+- Entry point: `if __name__ == "__main__": main()`
+
+### QA Results
+
+✓ **Scenario 1: First run (Database seeding)**
+- Script creates 12 flavor tags
+- Script creates 39 ingredients with flavor associations
+- Script creates 22 cocktails with full recipes
+- Exit code 0, no errors
+- Evidence: `.sisyphus/evidence/task-8-seed-run.txt`
+
+✓ **Scenario 2: Idempotency (Second run)**
+- Same script run twice
+- Second run creates 0 of each entity (all already exist)
+- Exit code 0, no errors, no duplicates
+- No warnings from IntegrityError backoff
+
+✓ **Scenario 3: Data counts verification**
+- 22 Cocktails in database (≥20 required)
+- 39 Ingredients in database (≥30 required)
+- 12 Flavor Tags in database (≥10 required)
+- All entities correctly linked via foreign keys
+
+✓ **Scenario 4: Sample cocktail verification**
+- Negroni: 3 ingredients (Gin 1 oz, Campari 1 oz, Sweet Vermouth 1 oz, Orange Peel)
+- Difficulty 1 (easy), Rocks glass
+- Accurate instructions present
+- Espresso Martini: 4 ingredients (Vodka 1.5 oz, Kahlua 1 oz, Simple Syrup 0.5 oz, Espresso 1 oz)
+- Difficulty 3 (challenging), Coupe glass
+- Evidence: `.sisyphus/evidence/task-8-data-verification.txt`
+
+✓ **Scenario 5: Flavor tag associations**
+- Gin tagged with: Citrus (Fresh), Herbal (Aromatic), Floral (Aromatic)
+- Links correctly stored in IngredientFlavorTag table
+- Queryable and usable for flavor-based filtering
+
+### Files Created
+
+- `scripts/__init__.py`: Package marker
+- `scripts/seed.py`: 475 lines, 22 cocktails, 39 ingredients, 12 flavor tags
+
+### Patterns Established
+
+1. **Seed Pattern**: Idempotent with IntegrityError handling, creation order, transaction management
+2. **Data Organization**: Category-based ingredient grouping, flavor tag associations, cocktail metadata
+3. **Real-World Data**: Accurate IBA cocktails with proper measurements and instructions
+4. **Environment Respect**: Uses get_db_url() for test isolation, respects SQLMODEL_DATABASE env var
+
+### Next Task Blockers
+
+Tasks 9+ (API routes, Streamlit UI, etc.) can now:
+- Query pre-populated cocktails ✓
+- Filter by flavor tags ✓
+- Demonstrate real data in endpoints ✓
+- Show real recipes and ingredients ✓
+- All data infrastructure complete
+
+
+## Task 6: FlavorTag CRUD Implementation
+
+### Service Layer Pattern
+- Service functions accept `session: Session` parameter
+- Service functions return SQLModel instances (not Pydantic schemas)
+- Routes handle conversion from SQLModel → Pydantic schemas using `.model_validate()`
+- CRUD operations use:
+  - `session.get(Model, id)` for single lookups
+  - `session.exec(select(Model))` for list queries
+  - Standard commit/refresh cycle for persistence
+
+### Unique Constraint Error Handling
+- FlavorTag.name has unique constraint at DB level
+- Catch `IntegrityError` from sqlalchemy.exc in route handlers
+- Wrap service calls in try/except blocks for POST and PUT
+- Call `session.rollback()` before raising HTTPException
+- Return 409 Conflict status with descriptive message:
+  ```python
+  except IntegrityError:
+      session.rollback()
+      raise HTTPException(
+          status_code=status.HTTP_409_CONFLICT,
+          detail=f"FlavorTag with name '{flavor_tag_in.name}' already exists",
+      )
+  ```
+
+### HTTP Status Code Conventions
+- POST create → 201 Created + response body
+- GET list/single → 200 OK + response body
+- PUT update → 200 OK + response body
+- DELETE → 204 No Content (empty response)
+- Not found → 404 Not Found
+- Unique constraint violation → 409 Conflict
+
+### Testing Strategy
+- Unit tests cover all CRUD operations (create, list, get, update, delete)
+- Test error paths: 404 for missing resources, 409 for duplicates
+- Use TestClient fixture with dependency override for isolated DB
+- Manual curl tests verify end-to-end behavior with actual HTTP calls
+
+### Differences from Ingredient Routes
+- FlavorTag simpler: no nested relationships or flavor_tag_ids field
+- No separate ReadWithTags schema needed
+- Single FlavorTagRead schema serves both list and detail endpoints
+- Update endpoint still needs IntegrityError handling (name uniqueness)

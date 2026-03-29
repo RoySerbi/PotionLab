@@ -1,0 +1,31 @@
+IMPORT_CHECK
+Import OK
+
+INGREDIENT_1
+{"id":40,"name":"Gin-1774793015","category":"spirit","description":"Dry gin"}
+
+INGREDIENT_2
+{"id":41,"name":"Tonic-Water-1774793015","category":"mixer","description":"Bitter tonic"}
+
+CREATE
+{"id":23,"name":"Gin and Tonic 1774793015","description":"Classic British cocktail","glass_type":"Highball","difficulty":1}
+
+LIST
+[{"id":1,"name":"Negroni","description":"The quintessential Italian aperitivo","glass_type":"Rocks","difficulty":1},{"id":2,"name":"Martini","description":"The most elegant cocktail in the world","glass_type":"Coupe","difficulty":2},{"id":3,"name":"Old Fashioned","description":"A classic bourbon cocktail with style","glass_type":"Rocks","difficulty":2},{"id":4,"name":"Daiquiri","description":"Simple rum, lime, and sugar perfection","glass_type":"Coupe","difficulty":1},{"id":5,"name":"Margarita","description":"The perfect tequila cocktail with citrus","glass_type":"Coupe","difficulty":2},{"id":6,"name":"Mojito","description":"A refreshing rum and mint classic","glass_type":"Highball","difficulty":3},{"id":7,"name":"Whiskey Sour","description":"Balanced bourbon with citrus and spice","glass_type":"Rocks","difficulty":3},{"id":8,"name":"Cosmopolitan","description":"The modern classic: vodka, cranberry, and citrus","glass_type":"Coupe","difficulty":2},{"id":9,"name":"Manhattan","description":"A whiskey classic with vermouth and bitters","glass_type":"Coupe","difficulty":2},{"id":10,"name":"Sazerac","description":"New Orleans legend with rye and absinthe","glass_type":"Rocks","difficulty":4},{"id":11,"name":"Espresso Martini","description":"Coffee and vodka for the caffeine lover","glass_type":"Coupe","difficulty":3},{"id":12,"name":"Aperol Spritz","description":"Italian aperitivo with bubbles","glass_type":"Wine","difficulty":1},{"id":13,"name":"Moscow Mule","description":"Vodka, ginger beer, and lime simplicity","glass_type":"Copper Mug","difficulty":1},{"id":14,"name":"Dark & Stormy","description":"Dark rum and spicy ginger beer tradition","glass_type":"Rocks","difficulty":1},{"id":15,"name":"Penicillin","description":"Scotch, honey, and ginger warmth","glass_type":"Rocks","difficulty":3},{"id":16,"name":"Mai Tai","description":"Tropical rum classic with almond","glass_type":"Rocks","difficulty":3},{"id":17,"name":"Clover Club","description":"Gin, raspberry, and egg white elegance","glass_type":"Coupe","difficulty":3},{"id":18,"name":"Aviation","description":"Gin with floral notes and cherry","glass_type":"Coupe","difficulty":3},{"id":19,"name":"Last Word","description":"Equal parts gin, green Chartreuse, and lime","glass_type":"Coupe","difficulty":3},{"id":20,"name":"Boulevardier","description":"Whiskey's answer to the Negroni","glass_type":"Coupe","difficulty":2},{"id":21,"name":"Sidecar","description":"Brandy, orange, and lemon balance","glass_type":"Coupe","difficulty":2},{"id":22,"name":"Pisco Sour","description":"Peruvian brandy with citrus and spice","glass_type":"Coupe","difficulty":3},{"id":23,"name":"Gin and Tonic 1774793015","description":"Classic British cocktail","glass_type":"Highball","difficulty":1}]
+
+DETAIL
+{"id":23,"name":"Gin and Tonic 1774793015","description":"Classic British cocktail","glass_type":"Highball","difficulty":1,"instructions":"Build in glass with ice","ingredients":[{"ingredient_id":40,"name":"Gin-1774793015","amount":"2 oz","is_optional":false},{"ingredient_id":41,"name":"Tonic-Water-1774793015","amount":"4 oz","is_optional":false}],"flavor_profile":["mixer","spirit"]}
+
+UPDATE
+{"id":23,"name":"Gin and Tonic 1774793015","description":"Classic refreshing cocktail","glass_type":"Highball","difficulty":1}
+
+DELETE_STATUS
+204
+
+NOT_FOUND_STATUS
+404
+
+INVALID_STATUS
+400
+INVALID_RESPONSE
+{"detail":"Ingredient id(s) not found: [9999]"}
