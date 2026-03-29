@@ -35,7 +35,8 @@
     "ses_2c508d24cffeJJGFw6jW4XzpE6",
     "ses_2c4e9f3fdffe21a7pRCWNtTKRY",
     "ses_2c4dbd37cffe8WTGygwCtIG5Z6",
-    "ses_2c4d8925fffeFQKlU9UsQ6iMHM"
+    "ses_2c4d8925fffeFQKlU9UsQ6iMHM",
+    "ses_2c4bc2dc3ffelUZOx37ev46E90"
   ],
   "plan_name": "potionlab",
   "agent": "atlas",
@@ -201,6 +202,15 @@
       "agent": "Sisyphus-Junior",
       "category": "unspecified-high",
       "updated_at": "2026-03-29T20:03:07.504Z"
+    },
+    "todo:31": {
+      "task_key": "todo:31",
+      "task_label": "31",
+      "task_title": "Final Quality Gate — Lint, Type-Check, Compose Smoke Test",
+      "session_id": "ses_2c4bc2dc3ffelUZOx37ev46E90",
+      "agent": "Sisyphus-Junior",
+      "category": "writing",
+      "updated_at": "2026-03-29T20:24:19.426Z"
     }
   }
 }
