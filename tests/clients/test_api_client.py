@@ -11,29 +11,17 @@ from app.clients import PotionLabClient
 
 
 @pytest.fixture
-def sample_data(client: TestClient) -> dict[str, Any]:
+def sample_data(client: TestClient, editor_headers: dict[str, str]) -> dict[str, Any]:
     """Create sample ingredients and cocktail for testing."""
-    register = client.post(
-        "/api/v1/auth/register",
-        json={"username": "client-user", "password": "client1234"},
-    )
-    assert register.status_code == 201
-    token_response = client.post(
-        "/api/v1/auth/token",
-        json={"username": "client-user", "password": "client1234"},
-    )
-    assert token_response.status_code == 200
-    auth_headers = {"Authorization": f"Bearer {token_response.json()['access_token']}"}
-
     ing_one = client.post(
         "/api/v1/ingredients",
         json={"name": "Rum", "category": "spirit", "description": "Dark rum"},
-        headers=auth_headers,
+        headers=editor_headers,
     )
     ing_two = client.post(
         "/api/v1/ingredients",
         json={"name": "Lime Juice", "category": "mixer", "description": "Fresh lime"},
-        headers=auth_headers,
+        headers=editor_headers,
     )
 
     payload = {
@@ -56,12 +44,12 @@ def sample_data(client: TestClient) -> dict[str, Any]:
         ],
     }
 
-    cocktail = client.post("/api/v1/cocktails", json=payload, headers=auth_headers)
+    cocktail = client.post("/api/v1/cocktails", json=payload, headers=editor_headers)
 
     return {
         "cocktail_id": cocktail.json()["id"],
         "ingredient_ids": [ing_one.json()["id"], ing_two.json()["id"]],
-        "auth_headers": auth_headers,
+        "auth_headers": editor_headers,
     }
 
 

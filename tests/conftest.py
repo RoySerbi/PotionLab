@@ -57,6 +57,26 @@ def auth_headers_fixture(client: TestClient) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
 
 
+@pytest.fixture(name="editor_headers")
+def editor_headers_fixture(client: TestClient, session: Session) -> dict[str, str]:
+    editor = User(
+        username="editor-user",
+        hashed_password=hash_password("editor1234"),
+        role="editor",
+    )
+    session.add(editor)
+    session.commit()
+
+    token_response = client.post(
+        "/api/v1/auth/token",
+        json={"username": "editor-user", "password": "editor1234"},
+    )
+    assert token_response.status_code == 200
+
+    token = token_response.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
 @pytest.fixture(name="admin_headers")
 def admin_headers_fixture(client: TestClient, session: Session) -> dict[str, str]:
     admin = User(

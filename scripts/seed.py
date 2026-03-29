@@ -3,6 +3,7 @@
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, create_engine, select
 
+from app.core.security import hash_password
 from app.db.session import get_db_url
 from app.models import (
     Cocktail,
@@ -10,6 +11,7 @@ from app.models import (
     FlavorTag,
     Ingredient,
     IngredientFlavorTag,
+    User,
 )
 
 
@@ -694,7 +696,7 @@ def seed_cocktails(session: Session) -> int:
             session.refresh(cocktail)
 
             # Add ingredients to cocktail
-            for ing_tuple in ingredients_raw:
+            for ing_tuple in ingredients_raw:  # type: ignore[attr-defined]
                 ing_name = ing_tuple[0]
                 amount = ing_tuple[1]
                 is_optional = ing_tuple[2] if len(ing_tuple) > 2 else False
@@ -724,6 +726,24 @@ def seed_cocktails(session: Session) -> int:
     return created
 
 
+def seed_admin_user(session: Session) -> int:
+    """Seed admin user for demo purposes."""
+    try:
+        admin = User(
+            username="admin",
+            hashed_password=hash_password("admin123"),
+            role="admin",
+        )
+        session.add(admin)
+        session.commit()
+        print("✓ Created admin user (username: admin, password: admin123)")
+        return 1
+    except IntegrityError:
+        session.rollback()
+        print("✓ Admin user already exists")
+        return 0
+
+
 def main() -> None:
     """Run the seeding process."""
     print("🍹 Seeding PotionLab database...")
@@ -734,6 +754,7 @@ def main() -> None:
     init_db()
 
     with Session(engine) as session:
+        seed_admin_user(session)
         seed_flavor_tags(session)
         seed_ingredients(session)
         seed_cocktails(session)

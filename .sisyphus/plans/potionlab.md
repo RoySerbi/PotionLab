@@ -1907,7 +1907,7 @@ Wave FINAL (After ALL tasks — verification):
   **Commit**: YES
   - Message: `feat(ai): add AI Mixologist microservice with Gemini, rate limiting, and Redis caching`
 
-- [ ] 25. scripts/refresh.py — Async Refresher with Bounded Concurrency
+- [x] 25. scripts/refresh.py — Async Refresher with Bounded Concurrency
 
   **What to do**:
   - Create `scripts/refresh.py`:
@@ -1970,7 +1970,7 @@ Wave FINAL (After ALL tasks — verification):
   **Commit**: YES
   - Message: `feat(async): add refresh script with bounded concurrency and Redis idempotency`
 
-- [ ] 26. Enhanced "What Can I Make?" with AI Substitution Suggestions
+- [x] 26. Enhanced "What Can I Make?" with AI Substitution Suggestions
 
   **What to do**:
   - Enhance the "What Can I Make?" feature (from Task 17):
@@ -2015,7 +2015,7 @@ Wave FINAL (After ALL tasks — verification):
   **Commit**: YES
   - Message: `feat(enhance): add AI-powered ingredient substitution suggestions`
 
-- [ ] 27. Protect Mutation Endpoints with JWT + Role Checks
+- [x] 27. Protect Mutation Endpoints with JWT + Role Checks
 
   **What to do**:
   - Apply `require_auth` dependency to mutation endpoints:

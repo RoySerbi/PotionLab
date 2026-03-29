@@ -1,9 +1,12 @@
 """FlavorTag CRUD API endpoints."""
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session
 
+from app.core.security import require_role
 from app.db.session import get_session
 from app.schemas.flavor_tag import FlavorTagCreate, FlavorTagRead
 from app.services.flavor_tag import (
@@ -23,6 +26,7 @@ router = APIRouter(tags=["flavor-tags"])
 def create_flavor_tag_endpoint(
     flavor_tag_in: FlavorTagCreate,
     session: Session = Depends(get_session),
+    user: dict[str, Any] = Depends(require_role("admin")),
 ) -> FlavorTagRead:
     """Create a new flavor tag."""
     try:
@@ -95,6 +99,7 @@ def update_flavor_tag_endpoint(
 def delete_flavor_tag_endpoint(
     flavor_tag_id: int,
     session: Session = Depends(get_session),
+    user: dict[str, Any] = Depends(require_role("admin")),
 ) -> None:
     """Delete a flavor tag."""
     deleted = delete_flavor_tag(session, flavor_tag_id)

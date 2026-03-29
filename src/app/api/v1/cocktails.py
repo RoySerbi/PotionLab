@@ -1,7 +1,10 @@
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session
 
+from app.core.security import require_role
 from app.db.session import get_session
 from app.schemas.cocktail import CocktailCreate, CocktailRead, CocktailReadFull
 from app.services.cocktail import (
@@ -22,6 +25,7 @@ router = APIRouter(tags=["cocktails"])
 def create_cocktail_endpoint(
     cocktail_in: CocktailCreate,
     session: Session = Depends(get_session),
+    user: dict[str, Any] = Depends(require_role(["editor", "admin"])),
 ) -> CocktailRead:
     try:
         cocktail = create_cocktail(session, cocktail_in)
@@ -86,6 +90,7 @@ def update_cocktail_endpoint(
     cocktail_id: int,
     cocktail_in: CocktailCreate,
     session: Session = Depends(get_session),
+    user: dict[str, Any] = Depends(require_role(["editor", "admin"])),
 ) -> CocktailRead:
     try:
         cocktail = update_cocktail(session, cocktail_id, cocktail_in)
@@ -110,6 +115,7 @@ def update_cocktail_endpoint(
 def delete_cocktail_endpoint(
     cocktail_id: int,
     session: Session = Depends(get_session),
+    user: dict[str, Any] = Depends(require_role(["editor", "admin"])),
 ) -> None:
     deleted = delete_cocktail(session, cocktail_id)
     if not deleted:

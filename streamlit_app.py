@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 from typing import Any, cast
 
+import httpx
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
@@ -488,6 +489,40 @@ def show_mix_cocktail() -> None:
                 )
 
 
+def get_ai_substitution(
+    cocktail_name: str, missing_ingredients: list[str], available_ingredients: list[str]
+) -> str | None:
+    """Call AI service for substitution suggestions."""
+    try:
+        with st.spinner("🤖 AI is thinking..."):
+            response = httpx.post(
+                "http://localhost:8001/mix",
+                json={
+                    "ingredients": available_ingredients,
+                    "preferences": (
+                        f"I want to make {cocktail_name} but I'm missing "
+                        f"{', '.join(missing_ingredients)}. What can I substitute?"
+                    ),
+                },
+                timeout=15.0,
+            )
+            response.raise_for_status()
+            data = response.json()
+            return data.get("why_this_works", "No substitution suggestions available.")
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 429:
+            st.error("⏳ AI service is rate-limited. Please try again in a moment.")
+        else:
+            st.error(f"❌ AI service error: {e.response.status_code}")
+        return None
+    except httpx.RequestError:
+        st.error("❌ AI service unavailable. Please ensure it's running on port 8001.")
+        return None
+    except Exception as e:
+        st.error(f"❌ Unexpected error: {str(e)}")
+        return None
+
+
 def show_what_can_i_make() -> None:
     st.header("What Can I Make?")
 
@@ -560,7 +595,7 @@ def show_what_can_i_make() -> None:
     if almost:
         st.subheader(f"🔸 Almost There ({len(almost)})")
         st.caption("You're missing 1-2 ingredients for these cocktails")
-        for cocktail, missing_ids in almost:
+        for idx, (cocktail, missing_ids) in enumerate(almost):
             missing_names = [
                 ingredient_id_to_name.get(mid, f"Unknown ({mid})")
                 for mid in missing_ids
@@ -576,6 +611,18 @@ def show_what_can_i_make() -> None:
                 st.markdown(f"**Glass:** {cocktail.get('glass_type', 'N/A')}")
                 st.markdown(f"**Difficulty:** {cocktail.get('difficulty', 'N/A')}")
                 st.markdown(f"**Missing:** {missing_text}")
+
+                # AI Substitution Button
+                button_key = f"ai_sub_{cocktail['id']}_{idx}"
+                if st.button("🤖 AI Suggest Substitution", key=button_key):
+                    ai_response = get_ai_substitution(
+                        cocktail_name=cocktail["name"],
+                        missing_ingredients=missing_names,
+                        available_ingredients=selected_names,
+                    )
+                    if ai_response:
+                        st.success("**AI Substitution Suggestions:**")
+                        st.info(ai_response)
 
     if not can_make and not almost:
         st.warning(

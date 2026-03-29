@@ -1,8 +1,11 @@
 """Ingredient CRUD API endpoints."""
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session
 
+from app.core.security import require_role
 from app.db.session import get_session
 from app.schemas.ingredient import (
     IngredientCreate,
@@ -26,6 +29,7 @@ router = APIRouter(tags=["ingredients"])
 def create_ingredient_endpoint(
     ingredient_in: IngredientCreate,
     session: Session = Depends(get_session),
+    user: dict[str, Any] = Depends(require_role(["editor", "admin"])),
 ) -> IngredientRead:
     """Create a new ingredient."""
     ingredient = create_ingredient(session, ingredient_in)
@@ -84,6 +88,7 @@ def update_ingredient_endpoint(
 def delete_ingredient_endpoint(
     ingredient_id: int,
     session: Session = Depends(get_session),
+    user: dict[str, Any] = Depends(require_role(["editor", "admin"])),
 ) -> None:
     """Delete an ingredient."""
     deleted = delete_ingredient(session, ingredient_id)

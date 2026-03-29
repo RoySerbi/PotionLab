@@ -83,9 +83,11 @@ def require_auth(
     return dict(payload)
 
 
-def require_role(required_role: str) -> Any:
+def require_role(required_roles: str | list[str]) -> Any:
+    roles = [required_roles] if isinstance(required_roles, str) else required_roles
+
     def role_checker(payload: dict[str, Any] = Depends(require_auth)) -> dict[str, Any]:
-        if payload.get("role") != required_role:
+        if payload.get("role") not in roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Insufficient permissions",

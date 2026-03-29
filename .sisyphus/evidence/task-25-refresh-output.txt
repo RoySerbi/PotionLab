@@ -1,0 +1,26 @@
+2026-03-29 22:09:04,552 INFO {"ai_service_url": "http://localhost:8001", "event": "refresh_started", "max_concurrent": 5}
+2026-03-29 22:09:04,607 INFO {"cocktail_id": 5, "cocktail_name": "Margarita", "event": "cocktail_skipped", "reason": "already_processed"}
+2026-03-29 22:09:04,608 INFO {"cocktail_id": 1, "cocktail_name": "Negroni", "event": "cocktail_skipped", "reason": "already_processed"}
+2026-03-29 22:09:04,608 INFO {"cocktail_id": 6, "cocktail_name": "Mojito", "event": "cocktail_skipped", "reason": "already_processed"}
+2026-03-29 22:09:04,609 INFO {"cocktail_id": 3, "cocktail_name": "Old Fashioned", "event": "cocktail_skipped", "reason": "already_processed"}
+2026-03-29 22:09:04,609 INFO {"cocktail_id": 2, "cocktail_name": "Martini", "event": "cocktail_skipped", "reason": "already_processed"}
+2026-03-29 22:09:04,609 INFO {"cocktail_id": 4, "cocktail_name": "Daiquiri", "event": "cocktail_skipped", "reason": "already_processed"}
+2026-03-29 22:09:04,609 INFO {"cocktail_id": 8, "cocktail_name": "Cosmopolitan", "event": "cocktail_skipped", "reason": "already_processed"}
+2026-03-29 22:09:04,609 INFO {"cocktail_id": 9, "cocktail_name": "Manhattan", "event": "cocktail_skipped", "reason": "already_processed"}
+2026-03-29 22:09:04,609 INFO {"cocktail_id": 7, "cocktail_name": "Whiskey Sour", "event": "cocktail_skipped", "reason": "already_processed"}
+2026-03-29 22:09:04,609 INFO {"cocktail_id": 10, "cocktail_name": "Sazerac", "event": "cocktail_skipped", "reason": "already_processed"}
+2026-03-29 22:09:04,609 INFO {"cocktail_id": 11, "cocktail_name": "Espresso Martini", "event": "cocktail_skipped", "reason": "already_processed"}
+2026-03-29 22:09:04,609 INFO {"cocktail_id": 12, "cocktail_name": "Aperol Spritz", "event": "cocktail_skipped", "reason": "already_processed"}
+2026-03-29 22:09:04,609 INFO {"cocktail_id": 13, "cocktail_name": "Moscow Mule", "event": "cocktail_skipped", "reason": "already_processed"}
+2026-03-29 22:09:04,609 INFO {"cocktail_id": 15, "cocktail_name": "Penicillin", "event": "cocktail_skipped", "reason": "already_processed"}
+2026-03-29 22:09:04,609 INFO {"cocktail_id": 14, "cocktail_name": "Dark & Stormy", "event": "cocktail_skipped", "reason": "already_processed"}
+2026-03-29 22:09:04,609 INFO {"cocktail_id": 16, "cocktail_name": "Mai Tai", "event": "cocktail_skipped", "reason": "already_processed"}
+2026-03-29 22:09:04,609 INFO {"cocktail_id": 17, "cocktail_name": "Clover Club", "event": "cocktail_skipped", "reason": "already_processed"}
+2026-03-29 22:09:04,609 INFO {"cocktail_id": 19, "cocktail_name": "Last Word", "event": "cocktail_skipped", "reason": "already_processed"}
+2026-03-29 22:09:04,610 INFO {"cocktail_id": 21, "cocktail_name": "Sidecar", "event": "cocktail_skipped", "reason": "already_processed"}
+2026-03-29 22:09:04,610 INFO {"cocktail_id": 18, "cocktail_name": "Aviation", "event": "cocktail_skipped", "reason": "already_processed"}
+2026-03-29 22:09:04,610 INFO {"cocktail_id": 20, "cocktail_name": "Boulevardier", "event": "cocktail_skipped", "reason": "already_processed"}
+2026-03-29 22:09:04,610 INFO {"cocktail_id": 23, "cocktail_name": "Test Cocktail", "event": "cocktail_skipped", "reason": "already_processed"}
+2026-03-29 22:09:04,610 INFO {"cocktail_id": 22, "cocktail_name": "Pisco Sour", "event": "cocktail_skipped", "reason": "already_processed"}
+Refreshing cocktails ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 23/23 0:00:00
+2026-03-29 22:09:04,612 INFO {"event": "refresh_finished", "failed": 0, "processed": 0, "skipped": 23, "total": 23}

@@ -28,7 +28,11 @@
     "ses_2c544582fffe5ck8hgzc2cVz9b",
     "ses_2c53fa010ffe0rzxmAO8Nlmubp",
     "ses_2c53202b4ffekGgiy4hN1Gz9Hv",
-    "ses_2c532852fffeBtemqPUmEn27IS"
+    "ses_2c532852fffeBtemqPUmEn27IS",
+    "ses_2c51b8881ffeDZjJJTj9bUB3lh",
+    "ses_2c508620bffeebu1UNKJT1LHfc",
+    "ses_2c507d9f7ffe6ulSfyi08MZwIS",
+    "ses_2c508d24cffeJJGFw6jW4XzpE6"
   ],
   "plan_name": "potionlab",
   "agent": "atlas",
@@ -149,6 +153,24 @@
       "agent": "Sisyphus-Junior",
       "category": "deep",
       "updated_at": "2026-03-29T18:33:47.582Z"
+    },
+    "todo:24": {
+      "task_key": "todo:24",
+      "task_label": "24",
+      "task_title": "AI Mixologist Microservice (Gemini Integration)",
+      "session_id": "ses_2c51b8881ffeDZjJJTj9bUB3lh",
+      "agent": "Sisyphus-Junior",
+      "category": "deep",
+      "updated_at": "2026-03-29T18:53:15.947Z"
+    },
+    "todo:25": {
+      "task_key": "todo:25",
+      "task_label": "25",
+      "task_title": "scripts/refresh.py — Async Refresher with Bounded Concurrency",
+      "session_id": "ses_2c508d24cffeJJGFw6jW4XzpE6",
+      "agent": "Sisyphus-Junior",
+      "category": "deep",
+      "updated_at": "2026-03-29T19:10:09.635Z"
     }
   }
 }
