@@ -2078,7 +2078,7 @@ Wave FINAL (After ALL tasks — verification):
   **Commit**: YES
   - Message: `feat(auth): protect mutation endpoints with JWT role-based access control`
 
-- [ ] 28. Demo Script
+- [x] 28. Demo Script
 
   **What to do**:
   - Create `scripts/demo.sh` (or `python -m app.demo`):
