@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -11,8 +13,11 @@ class Settings(BaseSettings):
     jwt_secret: str | None = None
     jwt_algorithm: str = "HS256"
     jwt_access_token_expire_minutes: int = 30
+    google_api_key: str | None = None
 
-    model_config = SettingsConfigDict(env_prefix="POTION_")
+    model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
+        env_prefix="POTION_"
+    )
 
 
 settings = Settings()

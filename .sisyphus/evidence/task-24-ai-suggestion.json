@@ -1,0 +1,19 @@
+{
+  "name": "Gin Tonic Highball",
+  "ingredients": [
+    {
+      "ingredient": "gin",
+      "amount": "1 oz"
+    },
+    {
+      "ingredient": "tonic",
+      "amount": "1 oz"
+    }
+  ],
+  "instructions": "Build over ice and stir gently.",
+  "flavor_profile": [
+    "balanced",
+    "refreshing"
+  ],
+  "why_this_works": "Ingredients complement each other through acidity, sweetness, and aroma balance."
+}
