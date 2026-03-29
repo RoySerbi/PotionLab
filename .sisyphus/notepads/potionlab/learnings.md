@@ -634,3 +634,137 @@ Tasks 9+ (API routes, Streamlit UI, etc.) can now:
 - No separate ReadWithTags schema needed
 - Single FlavorTagRead schema serves both list and detail endpoints
 - Update endpoint still needs IntegrityError handling (name uniqueness)
+
+## Task 9: Comprehensive Test Suite Expansion (96% Coverage Achieved)
+
+### Test Coverage Strategy
+- **Total Tests**: 48 (exceeded ≥30 target)
+- **Coverage**: 96% (exceeded ≥80% target)
+- **Breakdown**:
+  - API endpoints: 13 tests for cocktails (CRUD + error paths)
+  - Service layer: 13 tests for business logic validation
+  - Existing: 22 tests for ingredients, flavor-tags, health, models
+
+### Test Patterns Used
+
+#### 1. Error Path Testing (Critical for Business Logic)
+```python
+def test_create_cocktail_with_invalid_ingredient_id(client: TestClient):
+    """Test POST returns 400 for invalid ingredient_id."""
+    payload = {
+        "name": "Bad Cocktail",
+        "ingredients": [{"ingredient_id": 9999, "amount": "1 oz", "is_optional": False}]
+    }
+    response = client.post("/api/v1/cocktails", json=payload)
+    assert response.status_code == 400
+    assert "not found" in response.json()["detail"].lower()
+```
+
+#### 2. Parametrized Tests (Boundary Conditions)
+```python
+@pytest.mark.parametrize("difficulty", [0, 6, -1])
+def test_create_cocktail_invalid_difficulty(client: TestClient, difficulty: int):
+    """Test POST returns 422 for invalid difficulty values."""
+    # Validates Pydantic schema constraints (difficulty: 1-5)
+```
+
+#### 3. Service Layer Unit Tests (Business Logic Without HTTP)
+```python
+def test_create_cocktail_validates_ingredient_ids(session: Session):
+    """Test create_cocktail raises ValueError for invalid ingredient_id."""
+    cocktail_in = CocktailCreate(
+        name="Bad Cocktail",
+        ingredients=[CocktailIngredientCreate(ingredient_id=9999, amount="1 oz")]
+    )
+    with pytest.raises(ValueError, match="Ingredient id.*not found"):
+        create_cocktail(session, cocktail_in)
+```
+
+### Coverage Insights
+
+**High Coverage Areas (100%)**:
+- `app/api/v1/ingredients.py`: All CRUD operations tested
+- `app/api/v1/flavor_tags.py`: All CRUD operations tested
+- `app/services/ingredient.py`: All service functions tested
+- `app/services/flavor_tag.py`: All service functions tested
+- All models and schemas: 100%
+
+**Good Coverage Areas (89-93%)**:
+- `app/api/v1/cocktails.py`: 89% (uncovered: IntegrityError edge cases, 500 error path)
+- `app/services/cocktail.py`: 93% (uncovered: empty ingredient list validation, RuntimeError path)
+- `app/main.py`: 88% (uncovered: uvicorn startup lines)
+
+**Acceptable Coverage Areas (77%)**:
+- `app/db/session.py`: 77% (uncovered: lifespan context manager, startup/shutdown hooks)
+
+### Key Learnings
+
+1. **Service Layer Testing is Essential**:
+   - Tests business logic independently of HTTP layer
+   - Validates ValueError exceptions for invalid ingredient_ids
+   - Ensures atomic updates (delete old ingredients, add new ones)
+   - Easier to test edge cases without HTTP overhead
+
+2. **Error Testing Matters**:
+   - 404: Resource not found (GET/PUT/DELETE with invalid ID)
+   - 400: Business logic errors (invalid ingredient_id in cocktail)
+   - 422: Validation errors (Pydantic schema failures like difficulty out of range)
+   - IntegrityError: Database constraint violations (duplicate names)
+
+3. **Parametrize Reduces Duplication**:
+   - Single test function validates multiple boundary values
+   - Example: `@pytest.mark.parametrize("difficulty", [0, 6, -1])` tests all invalid difficulty values
+
+4. **Fixtures Enable Isolation**:
+   - `session` fixture: Fresh in-memory SQLite database per test
+   - `client` fixture: TestClient with overridden dependencies
+   - No shared state between tests = reliable, repeatable results
+
+5. **Coverage Gaps Are Acceptable**:
+   - Lifespan hooks (startup/shutdown) not easily testable without integration tests
+   - RuntimeError paths in services (defensive programming, unlikely to trigger)
+   - IntegrityError in API layer (already tested at service layer)
+
+### Test Organization
+
+```
+tests/
+├── api/
+│   ├── test_health.py          # 1 test
+│   ├── test_ingredients.py     # 10 tests (CRUD + 404/409)
+│   ├── test_flavor_tags.py     # 10 tests (CRUD + 404/409)
+│   └── test_cocktails.py       # 13 tests (CRUD + 400/404/422, parametrized)
+├── services/
+│   └── test_cocktail_service.py  # 13 tests (business logic validation)
+└── test_models.py              # 1 test (composite PK)
+```
+
+### Commands Used
+
+```bash
+# Run all tests
+uv run pytest -q --tb=short
+# Output: 48 passed, 1 warning
+
+# Run with coverage
+uv run coverage run -m pytest -q
+uv run coverage report -m
+# Output: 96% coverage (405 statements, 16 missed)
+
+# Count tests
+uv run pytest --collect-only -q | grep -E "test_" | wc -l
+# Output: 48 tests
+```
+
+### Evidence Files Created
+
+- `.sisyphus/evidence/task-9-pytest-results.txt`: Full pytest output
+- `.sisyphus/evidence/task-9-coverage-report.txt`: Coverage report with line numbers
+- `.sisyphus/evidence/task-9-test-count.txt`: Total test count
+
+### Next Steps (For Future Tasks)
+
+- Consider adding integration tests for lifespan hooks if needed
+- Monitor coverage trends as new features are added
+- Refactor tests if duplication emerges (extract helper functions)
+- Add performance tests if API latency becomes a concern

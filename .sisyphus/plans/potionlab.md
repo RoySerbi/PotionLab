@@ -948,7 +948,7 @@ Wave FINAL (After ALL tasks — verification):
   - Files: `scripts/seed.py, data/seed_cocktails.json`
   - Pre-commit: `uv run python scripts/seed.py`
 
-- [ ] 9. Comprehensive Test Suite — All Endpoints + Failure Modes
+- [x] 9. Comprehensive Test Suite — All Endpoints + Failure Modes
 
   **What to do**:
   - Create/expand `tests/api/test_ingredients.py`:

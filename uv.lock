@@ -564,6 +564,7 @@ name = "potionlab"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "coverage" },
     { name = "fastapi" },
     { name = "httpx" },
     { name = "mypy" },
@@ -585,6 +586,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "coverage", specifier = ">=7.0" },
     { name = "fastapi", specifier = ">=0.100.0" },
     { name = "httpx", specifier = ">=0.24.0" },
     { name = "mypy", specifier = ">=1.0.0" },

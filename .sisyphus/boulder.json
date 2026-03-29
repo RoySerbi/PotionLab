@@ -11,7 +11,8 @@
     "ses_2c61e258bffevLYPqQcdgvEAnb",
     "ses_2c61cdbdbffe7cAN3pte8V3n3A",
     "ses_2c61d7eedffeaknPh0XZ7t2Lwl",
-    "ses_2c6163b31ffesgli3b4CGI4NI6"
+    "ses_2c6163b31ffesgli3b4CGI4NI6",
+    "ses_2c610daf7ffe7StP3D05DjmyGG"
   ],
   "plan_name": "potionlab",
   "agent": "atlas",
@@ -42,6 +43,15 @@
       "agent": "Sisyphus-Junior",
       "category": "quick",
       "updated_at": "2026-03-29T14:07:40.950Z"
+    },
+    "todo:9": {
+      "task_key": "todo:9",
+      "task_label": "9",
+      "task_title": "Comprehensive Test Suite — All Endpoints + Failure Modes",
+      "session_id": "ses_2c610daf7ffe7StP3D05DjmyGG",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-03-29T14:15:25.041Z"
     }
   }
 }
