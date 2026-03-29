@@ -3,6 +3,13 @@ from collections.abc import Generator
 from sqlmodel import Session, SQLModel, create_engine
 
 from app.core.config import settings
+from app.models import (  # noqa: F401
+    Cocktail,
+    CocktailIngredient,
+    FlavorTag,
+    Ingredient,
+    IngredientFlavorTag,
+)
 
 
 def get_db_url() -> str:
