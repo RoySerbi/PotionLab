@@ -1,7 +1,9 @@
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
+import pandas as pd
+import plotly.graph_objects as go
 import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).parent / "src"))
@@ -44,6 +46,7 @@ def fetch_cocktails_with_counts() -> list[dict[str, Any]]:
     for c in cocktails:
         detail = api_client.get_cocktail(c["id"])
         c["num_ingredients"] = len(detail.get("ingredients", [])) if detail else 0
+        c["flavor_profile"] = detail.get("flavor_profile", []) if detail else []
         result.append(c)
     return result
 
@@ -61,6 +64,49 @@ def render_flavor_tags(tags: list[str]) -> None:
             f'display: inline-block; font-size: 0.9em;">{tag}</span>'
         )
     st.markdown(html, unsafe_allow_html=True)
+
+
+def render_flavor_radar_chart(tags_dict: dict[str, int], title: str = "") -> None:
+    if not tags_dict:
+        st.info("No flavor data available for chart.")
+        return
+
+    sorted_tags = sorted(tags_dict.items(), key=lambda x: x[1], reverse=True)[:8]
+    if not sorted_tags:
+        return
+
+    categories = [t[0] for t in sorted_tags]
+    values = [t[1] for t in sorted_tags]
+
+    categories.append(categories[0])
+    values.append(values[0])
+
+    fig = go.Figure(
+        data=go.Scatterpolar(
+            r=values,
+            theta=categories,
+            fill="toself",
+            fillcolor="rgba(46, 125, 50, 0.4)",
+            line=dict(color="#2E7D32", width=2),
+            marker=dict(color="#1B5E20", size=6),
+            name="Flavor Profile",
+        )
+    )
+
+    fig.update_layout(
+        polar=dict(
+            radialaxis=dict(
+                visible=True, range=[0, max(values) if max(values) > 0 else 1]
+            ),
+            angularaxis=dict(direction="clockwise", period=len(categories) - 1),
+        ),
+        showlegend=False,
+        title=title,
+        margin=dict(l=40, r=40, t=40 if title else 20, b=20),
+        height=350,
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
 
 
 def show_cocktail_browser() -> None:
@@ -99,7 +145,16 @@ def show_cocktail_browser() -> None:
         st.info("No cocktails match your filters.")
         return
 
-    import pandas as pd
+    from collections import Counter
+
+    all_tags = []
+    for c in filtered:
+        all_tags.extend(c.get("flavor_profile", []))
+
+    if all_tags:
+        st.subheader("Collection Flavor Profile")
+        tag_counts = dict(Counter(all_tags))
+        render_flavor_radar_chart(tag_counts)
 
     df = pd.DataFrame(
         [
@@ -142,6 +197,9 @@ def show_cocktail_browser() -> None:
                     st.write("**Flavor Profile:**")
                     render_flavor_tags(detail["flavor_profile"])
                     st.write("")
+
+                    cocktail_tags_dict = {tag: 1 for tag in detail["flavor_profile"]}
+                    render_flavor_radar_chart(cocktail_tags_dict)
 
                 st.write("**Ingredients:**")
                 for ing in detail.get("ingredients", []):
@@ -432,7 +490,98 @@ def show_mix_cocktail() -> None:
 
 def show_what_can_i_make() -> None:
     st.header("What Can I Make?")
-    st.info("Ingredient-based cocktail search coming soon in Task 17")
+
+    # Fetch ingredients with caching
+    @st.cache_data
+    def _get_ingredients() -> list[dict[str, Any]]:
+        return cast(list[dict[str, Any]], api_client.list_ingredients())
+
+    ingredients = _get_ingredients()
+    ingredient_options = {ing["name"]: ing["id"] for ing in ingredients}
+
+    selected_names = st.multiselect(
+        "Select ingredients you have:",
+        options=sorted(ingredient_options.keys()),
+        help="Choose all the ingredients you currently have available",
+    )
+
+    if not selected_names:
+        st.info("Select ingredients above to see which cocktails you can make")
+        return
+
+    selected_ids = {ingredient_options[name] for name in selected_names}
+
+    # Fetch all cocktails and analyze which can be made
+    with st.spinner("Analyzing cocktail possibilities..."):
+        all_cocktails = api_client.list_cocktails()
+        can_make: list[dict[str, Any]] = []
+        almost: list[tuple[dict[str, Any], set[int]]] = []
+
+        # Build ingredient ID to name mapping for display
+        ingredient_id_to_name = {ing["id"]: ing["name"] for ing in ingredients}
+
+        for cocktail_summary in all_cocktails:
+            cocktail = api_client.get_cocktail(cocktail_summary["id"])
+            if not cocktail or "ingredients" not in cocktail:
+                continue
+
+            # Get required ingredient IDs (non-optional)
+            required_ingredient_ids = {
+                ing["ingredient"]["id"]
+                for ing in cocktail["ingredients"]
+                if not ing.get("is_optional", False)
+            }
+
+            missing = required_ingredient_ids - selected_ids
+
+            if len(missing) == 0:
+                can_make.append(cocktail)
+            elif len(missing) <= 2:
+                almost.append((cocktail, missing))
+
+        # Sort almost by number of missing ingredients
+        almost.sort(key=lambda x: len(x[1]))
+
+    # Display results
+    if can_make:
+        st.subheader(f"✅ You Can Make These ({len(can_make)})")
+        for cocktail in can_make:
+            with st.expander(f"🍸 **{cocktail['name']}**", expanded=False):
+                st.markdown(f"*{cocktail.get('description', 'No description')}*")
+                st.markdown(f"**Glass:** {cocktail.get('glass_type', 'N/A')}")
+                st.markdown(f"**Difficulty:** {cocktail.get('difficulty', 'N/A')}")
+                st.markdown("**Ingredients:**")
+                for ing in cocktail.get("ingredients", []):
+                    ing_name = ing["ingredient"]["name"]
+                    amount = ing.get("amount", "")
+                    optional = " *(optional)*" if ing.get("is_optional", False) else ""
+                    st.markdown(f"- {amount} {ing_name}{optional}")
+
+    if almost:
+        st.subheader(f"🔸 Almost There ({len(almost)})")
+        st.caption("You're missing 1-2 ingredients for these cocktails")
+        for cocktail, missing_ids in almost:
+            missing_names = [
+                ingredient_id_to_name.get(mid, f"Unknown ({mid})")
+                for mid in missing_ids
+            ]
+            missing_count = len(missing_ids)
+            missing_text = ", ".join(missing_names)
+
+            with st.expander(
+                f"🥃 **{cocktail['name']}** — Missing {missing_count}: {missing_text}",
+                expanded=False,
+            ):
+                st.markdown(f"*{cocktail.get('description', 'No description')}*")
+                st.markdown(f"**Glass:** {cocktail.get('glass_type', 'N/A')}")
+                st.markdown(f"**Difficulty:** {cocktail.get('difficulty', 'N/A')}")
+                st.markdown(f"**Missing:** {missing_text}")
+
+    if not can_make and not almost:
+        st.warning(
+            "No cocktails found with your selected ingredients. "
+            "Try adding more ingredients!"
+        )
 
 
 if __name__ == "__main__":
