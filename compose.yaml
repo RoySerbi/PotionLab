@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      network: host
     ports:
       - "8000:8000"
     environment:
@@ -53,6 +54,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.ai
+      network: host
     ports:
       - "8001:8001"
     environment:

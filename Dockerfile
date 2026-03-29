@@ -12,12 +12,13 @@ WORKDIR /app
 # Install build tools (uv for dependency management)
 RUN pip install uv --break-system-packages
 
-# Copy dependency files
+# Copy dependency files and source structure (needed for editable install)
 COPY pyproject.toml ./
+COPY src/ ./src/
 
 # Sync dependencies into a clean virtual environment
 # --no-dev excludes development dependencies for production
-RUN uv sync --no-dev --system
+RUN uv sync --no-dev
 
 # ============================================================================
 # STAGE 2: Runtime
