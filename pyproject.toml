@@ -28,6 +28,7 @@ dependencies = [
     "coverage>=7.0",
     "streamlit>=1.55.0",
     "plotly>=6.6.0",
+    "psycopg[binary]>=3.3.3",
 ]
 
 [tool.setuptools]

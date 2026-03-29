@@ -1,5 +1,6 @@
 from collections.abc import Generator
 
+from sqlalchemy import Engine
 from sqlmodel import Session, SQLModel, create_engine
 
 from app.core.config import settings
@@ -16,14 +17,23 @@ def get_db_url() -> str:
     """Get database URL, respecting SQLMODEL_DATABASE env var for tests."""
     import os
 
-    return os.environ.get("SQLMODEL_DATABASE", settings.database_url)
+    return os.environ.get(
+        "SQLMODEL_DATABASE", settings.database_url or "sqlite:///data/app.db"
+    )
 
 
-engine = create_engine(
-    get_db_url(),
-    echo=False,
-    connect_args={"check_same_thread": False},
-)
+def get_engine() -> Engine:
+    """Create database engine with dual-mode support (PostgreSQL or SQLite)."""
+    db_url = get_db_url()
+    if db_url.startswith("postgresql"):
+        return create_engine(db_url, echo=False, pool_pre_ping=True)
+    else:
+        return create_engine(
+            db_url, echo=False, connect_args={"check_same_thread": False}
+        )
+
+
+engine = get_engine()
 
 
 def init_db() -> None:
