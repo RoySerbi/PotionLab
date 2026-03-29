@@ -125,26 +125,42 @@ def test_missing_user_login_triggers_dummy_hash(
     assert "dummy" in calls
 
 
-def test_access_protected_endpoint_without_token_returns_401(
+def test_mutation_endpoint_without_token_returns_401(
     client: TestClient,
 ) -> None:
-    response = client.get("/api/v1/cocktails")
-    assert response.status_code == 401
-
-
-def test_access_protected_endpoint_with_invalid_token_returns_401(
-    client: TestClient,
-) -> None:
-    response = client.get(
-        "/api/v1/cocktails", headers={"Authorization": "Bearer invalid-token"}
+    """POST/PUT/DELETE require auth, but GET does not per Task 27."""
+    response = client.post(
+        "/api/v1/cocktails/",
+        json={
+            "name": "Test",
+            "difficulty": 1,
+            "instructions": "Test",
+            "ingredients": [],
+        },
     )
     assert response.status_code == 401
 
 
-def test_access_protected_endpoint_with_valid_token_returns_200(
-    client: TestClient, auth_headers: dict[str, str]
+def test_mutation_endpoint_with_invalid_token_returns_401(
+    client: TestClient,
 ) -> None:
-    response = client.get("/api/v1/cocktails", headers=auth_headers)
+    """POST/PUT/DELETE require valid auth, but GET does not per Task 27."""
+    response = client.post(
+        "/api/v1/cocktails/",
+        json={
+            "name": "Test",
+            "difficulty": 1,
+            "instructions": "Test",
+            "ingredients": [],
+        },
+        headers={"Authorization": "Bearer invalid-token"},
+    )
+    assert response.status_code == 401
+
+
+def test_get_endpoint_public_access(client: TestClient) -> None:
+    """GET endpoints are public per Task 27."""
+    response = client.get("/api/v1/cocktails/")
     assert response.status_code == 200
 
 
@@ -158,13 +174,21 @@ def test_me_endpoint_returns_payload(
     assert data["role"] == "reader"
 
 
-def test_expired_token_rejected(client: TestClient) -> None:
+def test_expired_token_rejected_on_mutation(client: TestClient) -> None:
+    """Expired tokens should be rejected on mutation endpoints."""
     expired_token = create_access_token(
-        {"sub": "expired", "role": "reader"},
+        {"sub": "expired", "role": "editor"},
         expires_delta=timedelta(minutes=-1),
     )
-    response = client.get(
-        "/api/v1/cocktails", headers={"Authorization": f"Bearer {expired_token}"}
+    response = client.post(
+        "/api/v1/cocktails/",
+        json={
+            "name": "Test",
+            "difficulty": 1,
+            "instructions": "Test",
+            "ingredients": [],
+        },
+        headers={"Authorization": f"Bearer {expired_token}"},
     )
     assert response.status_code == 401
 
@@ -220,11 +244,12 @@ def test_role_claim_embedded_in_admin_token(
     )
     assert payload["role"] == "admin"
 
+
 def test_admin_jwt_contains_admin_role(client: TestClient, session: Session) -> None:
     """Verify admin user gets admin role in JWT token."""
     from jose import jwt
     from app.core.config import settings
-    
+
     # Create admin user
     admin = User(
         username="test_admin",
@@ -233,7 +258,7 @@ def test_admin_jwt_contains_admin_role(client: TestClient, session: Session) -> 
     )
     session.add(admin)
     session.commit()
-    
+
     # Login
     response = client.post(
         "/api/v1/auth/token",
@@ -241,8 +266,12 @@ def test_admin_jwt_contains_admin_role(client: TestClient, session: Session) -> 
     )
     assert response.status_code == 200
     token = response.json()["access_token"]
-    
+
     # Decode token and verify role
-    payload = jwt.decode(token, settings.jwt_secret or "", algorithms=[settings.jwt_algorithm])
-    assert payload["role"] == "admin", f"Expected role='admin', got role='{payload['role']}'"
+    payload = jwt.decode(
+        token, settings.jwt_secret or "", algorithms=[settings.jwt_algorithm]
+    )
+    assert payload["role"] == "admin", (
+        f"Expected role='admin', got role='{payload['role']}'"
+    )
     assert payload["sub"] == "test_admin"

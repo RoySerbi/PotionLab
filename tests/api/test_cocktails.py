@@ -378,11 +378,12 @@ def test_create_cocktail_requires_token(client: TestClient) -> None:
     assert response.status_code == 401
 
 
-def test_list_cocktails_invalid_token_rejected(client: TestClient) -> None:
+def test_list_cocktails_public_access(client: TestClient) -> None:
+    """GET endpoints are public per Task 27, even with invalid token."""
     response = client.get(
-        "/api/v1/cocktails", headers={"Authorization": "Bearer not-a-token"}
+        "/api/v1/cocktails/", headers={"Authorization": "Bearer not-a-token"}
     )
-    assert response.status_code == 401
+    assert response.status_code == 200
 
 
 def test_list_cocktails_with_valid_token(

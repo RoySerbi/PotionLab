@@ -23,9 +23,7 @@ app = FastAPI(
 
 app.include_router(ingredients.router, prefix="/api/v1")
 app.include_router(flavor_tags.router, prefix="/api/v1")
-app.include_router(
-    cocktails.router, prefix="/api/v1", dependencies=[Depends(require_auth)]
-)
+app.include_router(cocktails.router, prefix="/api/v1")
 app.include_router(routes_auth.router, prefix="/api/v1")
 
 

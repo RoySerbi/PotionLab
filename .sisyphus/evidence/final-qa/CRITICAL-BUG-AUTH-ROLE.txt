@@ -1,0 +1,37 @@
+CRITICAL BUG DISCOVERED DURING MANUAL QA
+==========================================
+
+**Issue**: JWT tokens contain wrong role claim
+
+**Details**:
+- Database shows user "admin" with role="admin"  
+- JWT token for "admin" user contains role="reader" in payload
+- This blocks ALL admin operations including flavor-tag CRUD
+
+**Evidence**:
+```bash
+# Database query shows:
+admin: admin
+
+# JWT token decode shows:
+{
+  "sub": "admin",
+  "role": "reader",  <-- WRONG! Should be "admin"
+  "exp": 1774819479
+}
+```
+
+**Impact**: 
+- FlavorTag POST/DELETE operations require admin role
+- Cannot test admin-only endpoints
+- RBAC is broken - role in token doesn't match database
+
+**Root Cause**:
+Likely in `app/core/security.py` - token creation doesn't properly read user.role from database
+
+**Reproduction**:
+1. Login as admin user (seeded with role="admin")
+2. Decode JWT token
+3. Observe role="reader" instead of role="admin"
+
+**Blocking**: Tasks 2, 6, 27 (FlavorTag admin operations)
