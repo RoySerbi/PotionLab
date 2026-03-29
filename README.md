@@ -95,6 +95,46 @@ uv run streamlit run streamlit_app.py
 - Matches are split between recipes you can make immediately and those where you're "Almost There" (missing 1-2 items).
 - Missing ingredients are highlighted to help plan your next grocery trip.
 
+## EX3: Docker Compose Stack & AI Integration
+
+The full PotionLab stack is containerized using Docker Compose, providing a robust environment with persistent storage, caching, and an AI-powered mixologist microservice.
+
+### Launching the Stack
+
+To start all services (API, AI Service, Postgres, Redis):
+
+```bash
+docker compose up --build -d
+```
+
+The services will be available at:
+- **API**: `http://localhost:8000`
+- **AI Mixologist**: `http://localhost:8001`
+- **Streamlit Dashboard**: `http://localhost:8501` (Run via `uv run streamlit run streamlit_app.py`)
+
+### Environment Variables
+
+Ensure these variables are set in your `.env` file (see `.env.example`):
+
+| Variable | Description | Default |
+| :--- | :--- | :--- |
+| `GOOGLE_API_KEY` | Gemini API key for AI generation | (Required) |
+| `POTION_REDIS_URL` | Redis connection string | `redis://localhost:6379` |
+| `POTION_JWT_SECRET` | Secret key for JWT signing | `change-me-in-production` |
+| `POTION_DATABASE_URL` | Database connection string | (SQLite if unset) |
+
+### Service Ports
+
+| Service | Host Port | Internal Port |
+| :--- | :--- | :--- |
+| **API** | 8000 | 8000 |
+| **AI Mixologist** | 8001 | 8001 |
+| **Postgres** | 5432 | 5432 |
+| **Redis** | 6379 | 6379 |
+| **Streamlit** | 8501 | 8501 |
+
+For detailed operational procedures, refer to the [Docker Compose Runbook](docs/runbooks/compose.md) and [EX3 Architecture Notes](docs/EX3-notes.md).
+
 ## Testing
 
 Run the full test suite (48 tests covering CRUD operations and business logic):
@@ -117,6 +157,7 @@ This project was developed using AI-assisted engineering practices.
 
 - **Architectural Design**: AI was used to draft the initial SQLModel schema and many-to-many relationship structures.
 - **Implementation**: Core service logic, FastAPI route handlers, and the Streamlit UI (including Plotly visualizations and dynamic forms) were generated and refined based on project-specific requirements.
+- **AI Mixologist Microservice**: A standalone FastAPI microservice (`ai_service/`) was developed with Google Gemini integration for sophisticated cocktail recipe generation and ingredient substitutions.
 - **Testing**: The comprehensive test suite was automated to ensure high coverage and edge-case handling.
 - **Documentation**: This README and the API documentation were drafted with AI assistance to ensure clarity and adherence to submission guidelines.
 

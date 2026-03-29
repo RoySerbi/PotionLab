@@ -4,8 +4,9 @@ This runbook covers deployment, verification, testing, and teardown procedures f
 
 ## Overview
 
-The stack consists of three services:
+The stack consists of four services:
 - **api**: PotionLab FastAPI application (port 8000)
+- **ai_service**: AI Mixologist microservice (port 8001)
 - **db**: PostgreSQL 16 database with persistent storage
 - **redis**: Redis 7 cache
 
@@ -47,11 +48,12 @@ docker compose up --build -d
 **Expected output**:
 ```
 [+] Building 45.2s (14/14) FINISHED
-[+] Running 4/4
+[+] Running 5/5
  ✔ Network lecture-notes_default        Created
  ✔ Container lecture-notes-db-1         Started (healthy)
  ✔ Container lecture-notes-redis-1      Started (healthy)
- ✔ Container lecture-notes-api-1        Started
+ ✔ Container lecture-notes-ai_service-1 Started (healthy)
+ ✔ Container lecture-notes-api-1        Started (healthy)
 ```
 
 ### 2. Monitor Service Health
@@ -64,10 +66,11 @@ docker compose ps
 
 **Expected output**:
 ```
-NAME                    STATUS              PORTS
-lecture-notes-api-1     Up (healthy)        0.0.0.0:8000->8000/tcp
-lecture-notes-db-1      Up (healthy)        5432/tcp
-lecture-notes-redis-1   Up (healthy)        6379/tcp
+NAME                       STATUS              PORTS
+lecture-notes-api-1        Up (healthy)        0.0.0.0:8000->8000/tcp
+lecture-notes-ai_service-1 Up (healthy)        0.0.0.0:8001->8001/tcp
+lecture-notes-db-1         Up (healthy)        5432/tcp
+lecture-notes-redis-1      Up (healthy)        6379/tcp
 ```
 
 **Troubleshooting**: If services show `starting` after 30s, check logs:
@@ -92,11 +95,20 @@ curl -s http://localhost:8000/health | jq
 }
 ```
 
-**Troubleshooting**:
-- `Connection refused`: API hasn't started yet, wait 10s and retry
-- `502 Bad Gateway`: Check `docker compose logs api` for startup errors
+### 2. AI Service Health Check
 
-### 2. Redis Connectivity
+```bash
+curl -s http://localhost:8001/health | jq
+```
+
+**Expected response**:
+```json
+{
+  "status": "ok"
+}
+```
+
+### 3. Redis Connectivity
 
 ```bash
 docker compose exec redis redis-cli ping
@@ -170,6 +182,7 @@ docker compose logs -f
 **Specific service**:
 ```bash
 docker compose logs -f api
+docker compose logs -f ai_service
 docker compose logs -f db
 docker compose logs -f redis
 ```
@@ -315,6 +328,7 @@ This stack is designed for **development and testing**. For production deploymen
 | View all logs | `docker compose logs -f` |
 | Check service health | `docker compose ps` |
 | API health check | `curl http://localhost:8000/health` |
+| AI health check | `curl http://localhost:8001/health` |
 | Redis ping | `docker compose exec redis redis-cli ping` |
 | Run tests | `docker compose exec api pytest -q` |
 | Seed database | `docker compose exec api python scripts/seed.py` |

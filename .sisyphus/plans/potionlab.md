@@ -2127,7 +2127,7 @@ Wave FINAL (After ALL tasks — verification):
   **Commit**: YES
   - Message: `feat(demo): add end-to-end demo script showcasing all features`
 
-- [ ] 29. Documentation — EX3-notes.md + Runbook
+- [x] 29. Documentation — EX3-notes.md + Runbook
 
   **What to do**:
   - Create/update `docs/EX3-notes.md`:

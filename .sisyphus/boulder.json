@@ -33,7 +33,8 @@
     "ses_2c508620bffeebu1UNKJT1LHfc",
     "ses_2c507d9f7ffe6ulSfyi08MZwIS",
     "ses_2c508d24cffeJJGFw6jW4XzpE6",
-    "ses_2c4e9f3fdffe21a7pRCWNtTKRY"
+    "ses_2c4e9f3fdffe21a7pRCWNtTKRY",
+    "ses_2c4dbd37cffe8WTGygwCtIG5Z6"
   ],
   "plan_name": "potionlab",
   "agent": "atlas",
@@ -181,6 +182,15 @@
       "agent": "Sisyphus-Junior",
       "category": "unspecified-high",
       "updated_at": "2026-03-29T19:43:31.164Z"
+    },
+    "todo:29": {
+      "task_key": "todo:29",
+      "task_label": "29",
+      "task_title": "Documentation — EX3-notes.md + Runbook",
+      "session_id": "ses_2c4dbd37cffe8WTGygwCtIG5Z6",
+      "agent": "Sisyphus-Junior",
+      "category": "writing",
+      "updated_at": "2026-03-29T19:50:04.385Z"
     }
   }
 }

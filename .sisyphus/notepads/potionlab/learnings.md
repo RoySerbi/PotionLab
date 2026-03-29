@@ -1514,3 +1514,9 @@ Created `scripts/demo.sh` - comprehensive end-to-end demo showcasing all PotionL
 - References Streamlit dashboard from Task 15/26
 - Leverages Docker Compose setup from Task 21
 
+
+## Documentation (Task 29)
+- Architecture diagram should use Mermaid for readability in GitHub/VS Code.
+- Separate AI microservice documentation helps clarify decoupling and scaling strategies.
+- Runbooks are essential for Docker Compose stacks to ensure reproducible deployments.
+- Updated README to clearly show service ports and required environment variables (like GOOGLE_API_KEY).
