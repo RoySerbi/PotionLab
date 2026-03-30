@@ -1,8 +1,0 @@
-Task 13 Cocktail Browser Implementation Evidence:
-1. Replaced placeholder with full table + search + detail view implementation.
-2. Verified `api_client.list_cocktails()` is used to fetch data and populates columns Name, Glass Type, Difficulty, and # Ingredients.
-3. Added interactive filters: text search by name, difficulty slider, multiselect for glass type.
-4. Added `st.dataframe` to show results in a clean table format.
-5. Added `st.selectbox` for selecting a cocktail to view full details (name, description, glass type, difficulty stars, flavor tags, and ingredients with amounts).
-6. Manually tested by running API and Streamlit app locally (`uv run uvicorn app.main:app` and `uv run streamlit run streamlit_app.py`). All layout parts (expander, markdown badges for flavor profiles) load without errors. Total 22 cocktails observed initially.
-7. Graceful degradation when the API is down is maintained via existing checks.

@@ -1,8 +1,0 @@
-.....................                                                    [100%]
-=============================== warnings summary ===============================
-tests/test_models.py::test_cocktail_ingredient_composite_pk_prevents_duplicates
-  /home/deftera/Documents/Github/lecture-notes/tests/test_models.py:49: SAWarning: New instance <CocktailIngredient at 0x7f50647165d0> with identity key (<class 'app.models.cocktail_ingredient.CocktailIngredient'>, (1, 1), None) conflicts with persistent instance <CocktailIngredient at 0x7f5064716490>
-    session.commit()
-
--- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-21 passed, 1 warning in 0.20s
