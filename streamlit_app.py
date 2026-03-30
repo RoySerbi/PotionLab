@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 from typing import Any, cast
@@ -6,12 +7,125 @@ import httpx
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+from streamlit_option_menu import option_menu
 
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 from app.clients import PotionLabClient
 
 st.set_page_config(page_title="PotionLab", page_icon="🍹", layout="wide")
+
+st.markdown(
+    """
+    <style>
+    /* ---- Sidebar ---- */
+    section[data-testid="stSidebar"] {
+        background-color: #141820;
+        border-right: 1px solid rgba(232, 115, 74, 0.15);
+    }
+    section[data-testid="stSidebar"] .stMarkdown h1 {
+        color: #E8734A;
+    }
+
+    /* ---- Cards / containers ---- */
+    div[data-testid="stExpander"] {
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 10px;
+        background-color: rgba(255,255,255,0.02);
+    }
+    div.stContainer > div[data-testid="stVerticalBlockBorderWrapper"] {
+        border-radius: 10px;
+    }
+
+    /* ---- Buttons ---- */
+    .stButton > button {
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+    .stButton > button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(232, 115, 74, 0.25);
+    }
+
+    /* ---- Dataframe ---- */
+    .stDataFrame {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    /* ---- Metrics / headings ---- */
+    h1, h2, h3 {
+        letter-spacing: -0.02em;
+    }
+    h2 {
+        border-bottom: 2px solid rgba(232, 115, 74, 0.3);
+        padding-bottom: 0.35em;
+    }
+
+    /* ---- Flavor tag pills (class-based) ---- */
+    .flavor-tag {
+        background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%);
+        color: #E8F5E9;
+        padding: 5px 14px;
+        border-radius: 20px;
+        margin: 3px;
+        display: inline-block;
+        font-size: 0.85em;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+    }
+
+    /* ---- Category badge (class-based) ---- */
+    .category-badge {
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.78em;
+        font-weight: 600;
+        color: #fff;
+        display: inline-block;
+        letter-spacing: 0.03em;
+    }
+
+    /* ---- Ingredient card flavor tags ---- */
+    .ingredient-flavor-tag {
+        background: rgba(255,255,255,0.1);
+        color: #ccc;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.72em;
+        margin-right: 4px;
+        display: inline-block;
+    }
+
+    /* ---- Success / info banners ---- */
+    .stSuccess, .stInfo {
+        border-radius: 8px;
+    }
+
+    /* ---- Selectbox & multiselect ---- */
+    .stSelectbox > div > div,
+    .stMultiSelect > div > div {
+        border-radius: 8px;
+    }
+
+    /* ---- Sidebar branding ---- */
+    .sidebar-brand {
+        text-align: center;
+        padding: 1rem 0 0.5rem 0;
+        font-size: 2rem;
+    }
+    .sidebar-brand-sub {
+        text-align: center;
+        font-size: 0.8rem;
+        color: rgba(255,255,255,0.5);
+        margin-bottom: 1.5rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 api_client = PotionLabClient()
 
@@ -20,15 +134,44 @@ def main() -> None:
     st.title("🍹 PotionLab")
     st.markdown("**Cocktail Recipe Engine & Flavor Chemistry Workbench**")
 
-    page = st.sidebar.radio(
-        "Navigation",
-        [
-            "Cocktail Browser",
-            "Ingredient Explorer",
-            "Mix a Cocktail",
-            "What Can I Make?",
-        ],
-    )
+    with st.sidebar:
+        st.markdown(
+            '<div class="sidebar-brand">🍹</div>'
+            '<div class="sidebar-brand-sub">PotionLab</div>',
+            unsafe_allow_html=True,
+        )
+        page = option_menu(
+            menu_title=None,
+            options=[
+                "Cocktail Browser",
+                "Ingredient Explorer",
+                "Mix a Cocktail",
+                "What Can I Make?",
+            ],
+            icons=["search", "flower1", "cup-straw", "question-circle"],
+            default_index=0,
+            styles={
+                "container": {
+                    "padding": "0!important",
+                    "background-color": "transparent",
+                },
+                "icon": {"color": "#E8734A", "font-size": "18px"},
+                "nav-link": {
+                    "font-size": "15px",
+                    "text-align": "left",
+                    "margin": "4px 0",
+                    "padding": "10px 16px",
+                    "border-radius": "8px",
+                    "--hover-color": "rgba(232, 115, 74, 0.1)",
+                    "color": "#FAFAFA",
+                },
+                "nav-link-selected": {
+                    "background-color": "#E8734A",
+                    "color": "#FFFFFF",
+                    "font-weight": "600",
+                },
+            },
+        )
 
     if page == "Cocktail Browser":
         show_cocktail_browser()
@@ -59,11 +202,7 @@ def difficulty_to_stars(difficulty: int) -> str:
 def render_flavor_tags(tags: list[str]) -> None:
     html = ""
     for tag in tags:
-        html += (
-            f'<span style="background-color: #E8F5E9; color: #2E7D32; '
-            f"padding: 4px 12px; border-radius: 12px; margin: 2px; "
-            f'display: inline-block; font-size: 0.9em;">{tag}</span>'
-        )
+        html += f'<span class="flavor-tag">{tag}</span>'
     st.markdown(html, unsafe_allow_html=True)
 
 
@@ -87,9 +226,9 @@ def render_flavor_radar_chart(tags_dict: dict[str, int], title: str = "") -> Non
             r=values,
             theta=categories,
             fill="toself",
-            fillcolor="rgba(46, 125, 50, 0.4)",
-            line=dict(color="#2E7D32", width=2),
-            marker=dict(color="#1B5E20", size=6),
+            fillcolor="rgba(232, 115, 74, 0.25)",
+            line=dict(color="#E8734A", width=2),
+            marker=dict(color="#C85A35", size=6),
             name="Flavor Profile",
         )
     )
@@ -97,14 +236,26 @@ def render_flavor_radar_chart(tags_dict: dict[str, int], title: str = "") -> Non
     fig.update_layout(
         polar=dict(
             radialaxis=dict(
-                visible=True, range=[0, max(values) if max(values) > 0 else 1]
+                visible=True,
+                range=[0, max(values) if max(values) > 0 else 1],
+                gridcolor="rgba(255,255,255,0.08)",
+                linecolor="rgba(255,255,255,0.08)",
             ),
-            angularaxis=dict(direction="clockwise", period=len(categories) - 1),
+            angularaxis=dict(
+                direction="clockwise",
+                period=len(categories) - 1,
+                gridcolor="rgba(255,255,255,0.08)",
+                linecolor="rgba(255,255,255,0.08)",
+            ),
+            bgcolor="rgba(0,0,0,0)",
         ),
         showlegend=False,
-        title=title,
+        title=dict(text=title, font=dict(color="#FAFAFA")) if title else None,
         margin=dict(l=40, r=40, t=40 if title else 20, b=20),
         height=350,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="#FAFAFA"),
     )
 
     st.plotly_chart(fig, use_container_width=True)
@@ -257,9 +408,8 @@ def show_ingredient_explorer() -> None:
                 cat = ing.get("category", "Unknown")
                 bg_color = get_category_color(cat)
                 st.markdown(
-                    f'<span style="background-color:{bg_color}; '
-                    f"padding: 2px 8px; border-radius: 12px; "
-                    f'font-size: 0.8em; color: white;">{cat}</span>',
+                    f'<span class="category-badge" '
+                    f'style="background-color:{bg_color};">{cat}</span>',
                     unsafe_allow_html=True,
                 )
 
@@ -270,10 +420,8 @@ def show_ingredient_explorer() -> None:
                 if flavor_tags:
                     tag_html = " ".join(
                         [
-                            f'<span style="background-color:#444; '
-                            f"padding: 2px 6px; border-radius: 8px; "
-                            f"font-size: 0.7em; color: #ddd; "
-                            f'margin-right: 4px;">{t.get("name", "")}</span>'
+                            f'<span class="ingredient-flavor-tag">'
+                            f"{t.get('name', '')}</span>"
                             for t in flavor_tags
                         ]
                     )
@@ -292,14 +440,17 @@ def show_ingredient_explorer() -> None:
 
         if selected_ing_for_cocktails != "(None)":
             matching_cocktails = []
-            for c in cocktails:
+            for c_summary in cocktails:
+                detail = api_client.get_cocktail(c_summary["id"])
+                if not detail:
+                    continue
                 c_ing_names = [
-                    item["ingredient"]["name"]
-                    for item in c.get("ingredients", [])
-                    if "ingredient" in item
+                    item["name"]
+                    for item in detail.get("ingredients", [])
+                    if "name" in item
                 ]
                 if selected_ing_for_cocktails in c_ing_names:
-                    matching_cocktails.append(c)
+                    matching_cocktails.append(c_summary)
 
             if matching_cocktails:
                 st.write(f"**Cocktails using {selected_ing_for_cocktails}:**")
@@ -495,8 +646,9 @@ def get_ai_substitution(
     """Call AI service for substitution suggestions."""
     try:
         with st.spinner("🤖 AI is thinking..."):
+            ai_url = os.getenv("POTIONLAB_AI_URL", "http://localhost:8001")
             response = httpx.post(
-                "http://localhost:8001/mix",
+                f"{ai_url}/mix",
                 json={
                     "ingredients": available_ingredients,
                     "preferences": (
@@ -562,7 +714,7 @@ def show_what_can_i_make() -> None:
 
             # Get required ingredient IDs (non-optional)
             required_ingredient_ids = {
-                ing["ingredient"]["id"]
+                ing["ingredient_id"]
                 for ing in cocktail["ingredients"]
                 if not ing.get("is_optional", False)
             }
@@ -587,7 +739,7 @@ def show_what_can_i_make() -> None:
                 st.markdown(f"**Difficulty:** {cocktail.get('difficulty', 'N/A')}")
                 st.markdown("**Ingredients:**")
                 for ing in cocktail.get("ingredients", []):
-                    ing_name = ing["ingredient"]["name"]
+                    ing_name = ing["name"]
                     amount = ing.get("amount", "")
                     optional = " *(optional)*" if ing.get("is_optional", False) else ""
                     st.markdown(f"- {amount} {ing_name}{optional}")

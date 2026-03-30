@@ -65,6 +65,21 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile.streamlit
+      network: host
+    ports:
+      - "8501:8501"
+    environment:
+      - POTIONLAB_API_URL=http://api:8000
+      - POTIONLAB_AI_URL=http://ai_service:8001
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   postgres_data:
     driver: local

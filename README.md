@@ -223,8 +223,6 @@ Ensure these variables are set in your `.env` file (see `.env.example`):
 | **Redis** | 6379 | 6379 |
 | **Streamlit** | 8501 | 8501 |
 
-For detailed operational procedures, refer to the [Docker Compose Runbook](docs/runbooks/compose.md) and [EX3 Architecture Notes](docs/EX3-notes.md).
-
 ## Testing
 
 Run the full test suite (48 tests covering CRUD operations and business logic):
@@ -267,8 +265,6 @@ An `examples.http` file is provided for use with the [VS Code REST Client](https
 **Redis connection errors:**
 - Check Redis is running: `redis-cli ping` should return `PONG`
 - Verify POTION_REDIS_URL in .env matches Redis location
-
-For detailed troubleshooting, see the [Docker Compose Runbook](docs/runbooks/compose.md).
 
 ## AI Assistance
 
