@@ -8,6 +8,7 @@
 FROM python:3.12-slim AS builder
 
 WORKDIR /app
+ENV PIP_TRUSTED_HOST="pypi.org pypi.python.org files.pythonhosted.org"
 
 # Install build tools (uv for dependency management)
 RUN pip install uv --break-system-packages
@@ -18,7 +19,11 @@ COPY src/ ./src/
 
 # Sync dependencies into a clean virtual environment
 # --no-dev excludes development dependencies for production
-RUN uv sync --no-dev
+ENV UV_INSECURE=true
+ENV UV_TLS_INSECURE=true
+
+RUN uv sync --no-dev --allow-insecure-host github.com --allow-insecure-host pypi.org --allow-insecure-host files.pythonhosted.org
+
 
 # ============================================================================
 # STAGE 2: Runtime

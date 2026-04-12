@@ -17,9 +17,14 @@ class _GeminiResponse(Protocol):
     text: str | None
 
 
+class _GeminiClient(Protocol):
+    @property
+    def models(self) -> _GeminiModel: ...
+
+
 class _GeminiModel(Protocol):
     def generate_content(
-        self, contents: str, *, generation_config: dict[str, object]
+        self, model: str, contents: str, config: dict[str, object]
     ) -> _GeminiResponse: ...
 
 
@@ -64,15 +69,13 @@ class GeminiClient:
             "POTION_REDIS_URL", "redis://localhost:6379"
         )
         self._api_key: str = self._read_api_key()
-        self._model: _GeminiModel | None = None
+        self._model: _GeminiClient | None = None
         if self._api_key != "test":
-            genai_module = importlib.import_module("google.generativeai")
-            configure = cast(Callable[..., None], getattr(genai_module, "configure"))
-            model_class = cast(
-                Callable[[str], _GeminiModel], getattr(genai_module, "GenerativeModel")
+            genai_module = importlib.import_module("google.genai")
+            client_class = cast(
+                Callable[..., _GeminiClient], getattr(genai_module, "Client")
             )
-            configure(api_key=self._api_key)
-            self._model = model_class(self._model_name)
+            self._model = client_class(api_key=self._api_key)
 
     def _read_api_key(self) -> str:
         fallback = os.environ.get("GOOGLE_API_KEY", "")
@@ -157,6 +160,20 @@ class GeminiClient:
         _ = write_pipe.expire(self._rate_limit_key, self._window_seconds)
         _ = write_pipe.execute()
 
+    def _clean_schema(self, schema: dict[str, object]) -> dict[str, object]:
+        """Remove unsupported fields from the schema for google.genai."""
+        cleaned = {}
+        for key, value in schema.items():
+            if key in ("title", "additionalProperties"):
+                continue
+            if isinstance(value, dict):
+                cleaned[key] = self._clean_schema(value)
+            elif isinstance(value, list):
+                cleaned[key] = [self._clean_schema(item) if isinstance(item, dict) else item for item in value]
+            else:
+                cleaned[key] = value
+        return cleaned
+
     def _fake_response(self, request: MixRequest) -> CocktailSuggestion:
         name_seed = " ".join(sorted(request.ingredients)[:2]).title() or "Custom"
         return CocktailSuggestion(
@@ -189,11 +206,13 @@ class GeminiClient:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Gemini model is not initialized",
             )
-        response = self._model.generate_content(
-            prompt,
-            generation_config={
+        schema = self._clean_schema(CocktailSuggestion.model_json_schema())
+        response = self._model.models.generate_content(
+            model=self._model_name,
+            contents=prompt,
+            config={
                 "response_mime_type": "application/json",
-                "response_schema": CocktailSuggestion.model_json_schema(),
+                "response_schema": schema,
             },
         )
         text = str(response.text or "").strip()
