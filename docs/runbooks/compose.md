@@ -92,7 +92,7 @@ A request **without** the header (or with an expired token) should return `401 U
 
 ### Rate-limit headers
 
-If `slowapi` (or similar) middleware is enabled, every API response carries:
+Rate limiting is enabled via `slowapi` middleware (default: **60 requests / minute / client IP**, see `src/app/main.py`). Every response carries:
 
 ```
 X-RateLimit-Limit: 60
@@ -106,7 +106,7 @@ Inspect them with:
 curl -i http://localhost:8000/api/v1/cocktails/ | grep -i X-RateLimit
 ```
 
-If those headers are absent, rate limiting is currently advisory only — note it in `docs/EX3-notes.md` rather than blocking the stack.
+When the limit is exceeded the API responds with `429 Too Many Requests`.
 
 ---
 

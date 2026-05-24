@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Unit & integration tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Sync dependencies
+        run: uv sync --all-extras
+
+      - name: Run pytest
+        env:
+          POTION_JWT_SECRET: ci-test-secret-not-for-prod
+          POTION_DATABASE_URL: sqlite:///./ci-test.db
+        run: uv run pytest -q
+
+  schemathesis:
+    name: Schemathesis contract tests
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create .env for compose
+        run: |
+          cat > .env <<'EOF'
+          GOOGLE_API_KEY=ci-placeholder-key
+          POSTGRES_PASSWORD=ci-postgres-password
+          POTION_JWT_SECRET=ci-test-secret-not-for-prod
+          EOF
+
+      - name: Build and start the API stack
+        run: |
+          docker compose up --build -d db redis api
+          # Wait for API to become healthy
+          for i in $(seq 1 30); do
+            if curl -fs http://localhost:8000/health > /dev/null; then
+              echo "API is healthy"
+              break
+            fi
+            echo "Waiting for API... ($i/30)"
+            sleep 2
+          done
+          curl -f http://localhost:8000/health
+
+      - name: Seed the database
+        run: docker compose exec -T api python scripts/seed.py
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Run Schemathesis against the live API
+        run: |
+          uv tool run --from schemathesis schemathesis run \
+            --checks all \
+            --hypothesis-max-examples=15 \
+            --workers=2 \
+            http://localhost:8000/openapi.json
+
+      - name: Dump compose logs on failure
+        if: failure()
+        run: docker compose logs --no-color
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
