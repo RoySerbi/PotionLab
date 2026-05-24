@@ -7,7 +7,6 @@ import httpx
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
-from streamlit_option_menu import option_menu
 
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
@@ -18,13 +17,47 @@ st.set_page_config(page_title="PotionLab", page_icon="🍹", layout="wide")
 st.markdown(
     """
     <style>
-    /* ---- Sidebar ---- */
+    /* ---- Sidebar ----
+       No hardcoded background: let Streamlit's theme
+       (secondaryBackgroundColor) handle it so the sidebar matches
+       the rest of the page in both light and dark modes. */
     section[data-testid="stSidebar"] {
-        background-color: #141820;
-        border-right: 1px solid rgba(232, 115, 74, 0.15);
+        border-right: 1px solid rgba(232, 115, 74, 0.20);
     }
     section[data-testid="stSidebar"] .stMarkdown h1 {
         color: #E8734A;
+    }
+
+    /* ---- Sidebar navigation (st.radio styled as a menu) ---- */
+    section[data-testid="stSidebar"] div[role="radiogroup"] {
+        gap: 4px;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label {
+        display: flex;
+        align-items: center;
+        padding: 10px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+        /* Text color inherits Streamlit's theme textColor automatically */
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label:hover {
+        background-color: rgba(232, 115, 74, 0.12);
+    }
+    /* Hide the native radio circle */
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label > div:first-child {
+        display: none;
+    }
+    /* Highlight the selected option */
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) {
+        background-color: #E8734A;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label:has(input:checked) p {
+        color: #FFFFFF !important;
+        font-weight: 600;
+    }
+    section[data-testid="stSidebar"] div[role="radiogroup"] > label p {
+        font-size: 15px;
     }
 
     /* ---- Cards / containers ---- */
@@ -117,10 +150,36 @@ st.markdown(
     .sidebar-brand-sub {
         text-align: center;
         font-size: 0.8rem;
-        color: rgba(255,255,255,0.5);
+        /* Neutral gray reads well on both dark and light sidebars */
+        color: rgba(128, 128, 128, 0.85);
         margin-bottom: 1.5rem;
         letter-spacing: 0.15em;
         text-transform: uppercase;
+    }
+
+    /* ============================================================
+       Light-mode overrides
+       Streamlit's auto theme follows the OS preference. The sidebar
+       background and text now come from Streamlit's theme directly,
+       so we only patch the few custom widgets that had dark-only
+       colors baked in.
+       ============================================================ */
+    @media (prefers-color-scheme: light) {
+        section[data-testid="stSidebar"] {
+            border-right: 1px solid rgba(232, 115, 74, 0.25);
+        }
+
+        /* Containers & expanders look washed-out with the dark rules above */
+        div[data-testid="stExpander"] {
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+
+        /* Ingredient card tag pill: white-on-white was invisible */
+        .ingredient-flavor-tag {
+            background: rgba(0, 0, 0, 0.06);
+            color: #333;
+        }
     }
     </style>
     """,
@@ -140,38 +199,23 @@ def main() -> None:
             '<div class="sidebar-brand-sub">PotionLab</div>',
             unsafe_allow_html=True,
         )
-        page = option_menu(
-            menu_title=None,
-            options=[
-                "Cocktail Browser",
-                "Ingredient Explorer",
-                "Mix a Cocktail",
-                "What Can I Make?",
-            ],
-            icons=["search", "flower1", "cup-straw", "question-circle"],
-            default_index=0,
-            styles={
-                "container": {
-                    "padding": "0!important",
-                    "background-color": "transparent",
-                },
-                "icon": {"color": "#E8734A", "font-size": "18px"},
-                "nav-link": {
-                    "font-size": "15px",
-                    "text-align": "left",
-                    "margin": "4px 0",
-                    "padding": "10px 16px",
-                    "border-radius": "8px",
-                    "--hover-color": "rgba(232, 115, 74, 0.1)",
-                    "color": "#FAFAFA",
-                },
-                "nav-link-selected": {
-                    "background-color": "#E8734A",
-                    "color": "#FFFFFF",
-                    "font-weight": "600",
-                },
-            },
+
+        # Native st.radio lives in the main DOM and inherits Streamlit's
+        # theme text color, so light/dark switches in the Settings menu
+        # are reflected automatically — unlike streamlit_option_menu,
+        # which renders inside an iframe and cannot see in-app theme changes.
+        page_options = {
+            "🔎  Cocktail Browser": "Cocktail Browser",
+            "🌼  Ingredient Explorer": "Ingredient Explorer",
+            "🥤  Mix a Cocktail": "Mix a Cocktail",
+            "❓  What Can I Make?": "What Can I Make?",
+        }
+        selected_label = st.radio(
+            "Navigation",
+            options=list(page_options.keys()),
+            label_visibility="collapsed",
         )
+        page = page_options[selected_label]
 
     if page == "Cocktail Browser":
         show_cocktail_browser()
