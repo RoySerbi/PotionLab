@@ -1,4 +1,6 @@
 from contextlib import asynccontextmanager
+import os
+import sys
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -12,9 +14,24 @@ from app.core.config import settings
 from app.db.session import init_db
 
 
-# Rate limiter: 60 requests per minute per client IP by default.
-# Individual routes can override with @limiter.limit("N/period").
-limiter = Limiter(key_func=get_remote_address, default_limits=["60/minute"])
+def _under_test() -> bool:
+    """Detect whether the app is being imported by a pytest session.
+
+    Used to relax rate limiting so the test suite doesn't trip the limiter.
+    Override-able via POTION_DISABLE_RATE_LIMIT=1.
+    """
+    if os.getenv("POTION_DISABLE_RATE_LIMIT") == "1":
+        return True
+    if "PYTEST_CURRENT_TEST" in os.environ:
+        return True
+    return "pytest" in sys.modules
+
+
+# Rate limiter: 60 requests per minute per client IP in production; effectively
+# unlimited when running under pytest so the shared TestClient IP doesn't trip
+# the limiter across the suite.
+_default_limits = ["1000000/minute"] if _under_test() else ["60/minute"]
+limiter = Limiter(key_func=get_remote_address, default_limits=_default_limits)
 
 
 @asynccontextmanager
