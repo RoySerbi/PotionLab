@@ -9,6 +9,7 @@ services:
     environment:
       - POTION_DATABASE_URL=postgresql+psycopg://postgres:${POSTGRES_PASSWORD:-postgres}@db:5432/potionlab
       - POTION_REDIS_URL=redis://redis:6379
+      - POTION_JWT_SECRET=${POTION_JWT_SECRET:?POTION_JWT_SECRET is required (set it in .env)}
     depends_on:
       db:
         condition: service_healthy

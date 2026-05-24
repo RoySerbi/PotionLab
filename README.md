@@ -43,9 +43,27 @@ PotionLab is a specialized backend service for mixologists and flavor scientists
 
 6. **Verify the stack is working**:
    ```bash
-   curl http://localhost:8000/health
-   curl http://localhost:8001/health
+   curl http://localhost:8000/health          # → {"status":"ok","redis":"connected"}
+   curl http://localhost:8001/health          # → {"status":"ok"}
+   curl http://localhost:8000/api/v1/cocktails  # public GET, no auth
    ```
+
+   The seed script also creates a default admin user (`admin` / `admin123`).
+   Mutating endpoints (`POST` / `PUT` / `DELETE`) require a bearer token:
+
+   ```bash
+   TOKEN=$(curl -s -X POST http://localhost:8000/api/v1/auth/token \
+     -H 'Content-Type: application/json' \
+     -d '{"username":"admin","password":"admin123"}' | jq -r .access_token)
+
+   curl -X POST http://localhost:8000/api/v1/cocktails \
+     -H "Authorization: Bearer $TOKEN" \
+     -H 'Content-Type: application/json' \
+     -d '{"name":"Test","instructions":"Stir"}'
+   ```
+
+   See `docs/EX3-notes.md` for the full security model and the rate-limit
+   contract (60 requests / minute / client IP).
 
 7. **Optional: Start Streamlit dashboard**:
    ```bash

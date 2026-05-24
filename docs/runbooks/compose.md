@@ -78,11 +78,15 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8501
 
 ### Sanity-check an authenticated route
 
+The seed script creates a default admin user: **`admin` / `admin123`**.
+Mutating endpoints (`POST` / `PUT` / `DELETE`) require a bearer token;
+`GET` endpoints are public.
+
 ```bash
-# Login → grab token
-TOKEN=$(curl -s -X POST http://localhost:8000/api/v1/auth/login \
+# Login → grab token (note the endpoint is /auth/token, not /auth/login)
+TOKEN=$(curl -s -X POST http://localhost:8000/api/v1/auth/token \
   -H 'Content-Type: application/json' \
-  -d '{"username":"admin","password":"admin"}' | jq -r .access_token)
+  -d '{"username":"admin","password":"admin123"}' | jq -r .access_token)
 
 # Use it
 curl -i -H "Authorization: Bearer $TOKEN" http://localhost:8000/api/v1/auth/me
