@@ -18,7 +18,7 @@ PotionLab is a specialized backend service for mixologists and flavor scientists
 
 1. **Clone and navigate to the project**:
    ```bash
-   cd /path/to/lecture-notes
+   cd /path/to/PotionLab
    ```
 
 2. **Set up environment variables**:
