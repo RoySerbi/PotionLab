@@ -94,23 +94,21 @@ curl -i -H "Authorization: Bearer $TOKEN" http://localhost:8000/api/v1/auth/me
 
 A request **without** the header (or with an expired token) should return `401 Unauthorized`; a token with the wrong role should return `403 Forbidden`. Both behaviors are covered by `tests/api/test_auth.py`.
 
-### Rate-limit headers
+### Rate limiting
 
-Rate limiting is enabled via `slowapi` middleware (default: **60 requests / minute / client IP**, see `src/app/main.py`). Every response carries:
+Rate limiting is enabled via `slowapi` middleware (default: **60 requests / minute / client IP**, see `src/app/main.py:34-35`). The default slowapi handler does **not** emit `X-RateLimit-*` headers — the limit is communicated only through the 429 response body. See `docs/EX3-notes.md` §3.5 for the rationale and a captured trace.
 
-```
-X-RateLimit-Limit: 60
-X-RateLimit-Remaining: 58
-X-RateLimit-Reset: 1719655412
-```
-
-Inspect them with:
+Verify it works by hammering any endpoint:
 
 ```bash
-curl -i http://localhost:8000/api/v1/cocktails/ | grep -i X-RateLimit
+for i in $(seq 1 70); do
+  curl -s -o /dev/null -w "%{http_code} " http://localhost:8000/api/v1/cocktails
+done | tr ' ' '\n' | sort | uniq -c
+#      60 200
+#      10 429
 ```
 
-When the limit is exceeded the API responds with `429 Too Many Requests`.
+When the limit is exceeded the API responds with `429 Too Many Requests` and a JSON body of `{"error":"Rate limit exceeded: 60 per 1 minute"}`. Clients (including `scripts/refresh.py`) should treat any 429 as "back off ≥1 s and retry".
 
 ---
 

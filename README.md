@@ -221,7 +221,7 @@ Ensure these variables are set in your `.env` file (see `.env.example`):
 
 ## Testing
 
-Run the full test suite (**122 tests** covering CRUD operations, JWT auth, role-based authorization, the async refresh worker, and the AI service):
+Run the full test suite (**124 tests** covering CRUD operations, JWT auth, role-based authorization, the async refresh worker, and the AI service):
 ```bash
 uv run pytest -q
 ```
