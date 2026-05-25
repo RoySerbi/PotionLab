@@ -3,9 +3,11 @@
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session
 
 from app.core.security import require_role
+from app.api.v1 import IdPath
 from app.db.session import get_session
 from app.schemas.ingredient import (
     IngredientCreate,
@@ -51,7 +53,7 @@ def list_ingredients(
     response_model=IngredientReadWithTags,
 )
 def get_ingredient(
-    ingredient_id: int,
+    ingredient_id: IdPath,
     session: Session = Depends(get_session),
 ) -> IngredientReadWithTags:
     """Get a single ingredient by ID (nested schema with flavor tags)."""
@@ -70,12 +72,19 @@ def get_ingredient(
     response_model=IngredientRead,
 )
 def update_ingredient_endpoint(
-    ingredient_id: int,
+    ingredient_id: IdPath,
     ingredient_in: IngredientCreate,
     session: Session = Depends(get_session),
 ) -> IngredientRead:
     """Update an existing ingredient."""
-    ingredient = update_ingredient(session, ingredient_id, ingredient_in)
+    try:
+        ingredient = update_ingredient(session, ingredient_id, ingredient_in)
+    except IntegrityError:
+        session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Ingredient with name '{ingredient_in.name}' already exists",
+        )
     if not ingredient:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -86,7 +95,7 @@ def update_ingredient_endpoint(
 
 @router.delete("/ingredients/{ingredient_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_ingredient_endpoint(
-    ingredient_id: int,
+    ingredient_id: IdPath,
     session: Session = Depends(get_session),
     user: dict[str, Any] = Depends(require_role(["editor", "admin"])),
 ) -> None:

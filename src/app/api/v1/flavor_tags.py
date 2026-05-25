@@ -7,6 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session
 
 from app.core.security import require_role
+from app.api.v1 import IdPath
 from app.db.session import get_session
 from app.schemas.flavor_tag import FlavorTagCreate, FlavorTagRead
 from app.services.flavor_tag import (
@@ -55,7 +56,7 @@ def list_flavor_tags(
     response_model=FlavorTagRead,
 )
 def get_flavor_tag(
-    flavor_tag_id: int,
+    flavor_tag_id: IdPath,
     session: Session = Depends(get_session),
 ) -> FlavorTagRead:
     """Get a single flavor tag by ID."""
@@ -74,7 +75,7 @@ def get_flavor_tag(
     response_model=FlavorTagRead,
 )
 def update_flavor_tag_endpoint(
-    flavor_tag_id: int,
+    flavor_tag_id: IdPath,
     flavor_tag_in: FlavorTagCreate,
     session: Session = Depends(get_session),
 ) -> FlavorTagRead:
@@ -97,7 +98,7 @@ def update_flavor_tag_endpoint(
 
 @router.delete("/flavor-tags/{flavor_tag_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_flavor_tag_endpoint(
-    flavor_tag_id: int,
+    flavor_tag_id: IdPath,
     session: Session = Depends(get_session),
     user: dict[str, Any] = Depends(require_role("admin")),
 ) -> None:

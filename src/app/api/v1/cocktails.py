@@ -5,6 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session
 
 from app.core.security import require_role
+from app.api.v1 import IdPath
 from app.db.session import get_session
 from app.schemas.cocktail import CocktailCreate, CocktailRead, CocktailReadFull
 from app.services.cocktail import (
@@ -54,7 +55,7 @@ def list_cocktails(session: Session = Depends(get_session)) -> list[CocktailRead
     response_model=CocktailReadFull,
 )
 def get_cocktail(
-    cocktail_id: int,
+    cocktail_id: IdPath,
     session: Session = Depends(get_session),
 ) -> CocktailReadFull:
     cocktail = read_cocktail_by_id(session, cocktail_id)
@@ -87,7 +88,7 @@ def get_cocktail(
     response_model=CocktailRead,
 )
 def update_cocktail_endpoint(
-    cocktail_id: int,
+    cocktail_id: IdPath,
     cocktail_in: CocktailCreate,
     session: Session = Depends(get_session),
     user: dict[str, Any] = Depends(require_role(["editor", "admin"])),
@@ -113,7 +114,7 @@ def update_cocktail_endpoint(
 
 @router.delete("/cocktails/{cocktail_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_cocktail_endpoint(
-    cocktail_id: int,
+    cocktail_id: IdPath,
     session: Session = Depends(get_session),
     user: dict[str, Any] = Depends(require_role(["editor", "admin"])),
 ) -> None:

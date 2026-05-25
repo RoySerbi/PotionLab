@@ -8,6 +8,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
+from sqlalchemy.exc import DataError, IntegrityError
 
 from app.api.v1 import cocktails, flavor_tags, ingredients, routes_auth
 from app.core.config import settings
@@ -51,6 +52,30 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
 app.add_middleware(SlowAPIMiddleware)
+
+
+# --- Database-layer error handlers ---------------------------------------
+# Without these, malformed input that survives Pydantic validation
+# (e.g. NUL bytes in strings, oversized integers, duplicate uniques)
+# would bubble up as opaque HTTP 500s. Schemathesis fuzzing flagged this.
+@app.exception_handler(DataError)
+async def _data_error_handler(request: Request, exc: DataError) -> JSONResponse:
+    """Turn psycopg ``DataError`` (e.g. NUL bytes, out-of-range numerics) into 422."""
+    return JSONResponse(
+        status_code=422,
+        content={"detail": "Invalid input for one or more fields"},
+    )
+
+
+@app.exception_handler(IntegrityError)
+async def _integrity_error_handler(
+    request: Request, exc: IntegrityError
+) -> JSONResponse:
+    """Map unhandled ``IntegrityError`` (unique / FK violations) to 409."""
+    return JSONResponse(
+        status_code=409,
+        content={"detail": "Resource conflicts with existing data"},
+    )
 
 app.include_router(ingredients.router, prefix="/api/v1")
 app.include_router(flavor_tags.router, prefix="/api/v1")
