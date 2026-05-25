@@ -4,7 +4,7 @@ from datetime import timedelta
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlmodel import Session, select
 
 from app.core.config import settings
@@ -25,6 +25,15 @@ class RegisterRequest(BaseModel):
     username: str = Field(min_length=3, max_length=80)
     password: str = Field(min_length=6, max_length=128)
 
+    @field_validator("username", "password")
+    @classmethod
+    def _no_nul_bytes(cls, v: str) -> str:
+        # bcrypt rejects NUL bytes in passwords and PostgreSQL rejects them
+        # in any text column. Surface a clean 422 instead of a 500.
+        if "\x00" in v:
+            raise ValueError("must not contain NUL bytes")
+        return v
+
 
 class RegisterResponse(BaseModel):
     id: int
@@ -35,6 +44,13 @@ class RegisterResponse(BaseModel):
 class TokenRequest(BaseModel):
     username: str = Field(min_length=3, max_length=80)
     password: str = Field(min_length=1, max_length=128)
+
+    @field_validator("username", "password")
+    @classmethod
+    def _no_nul_bytes(cls, v: str) -> str:
+        if "\x00" in v:
+            raise ValueError("must not contain NUL bytes")
+        return v
 
 
 class TokenResponse(BaseModel):
