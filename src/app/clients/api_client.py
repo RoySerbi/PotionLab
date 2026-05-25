@@ -14,11 +14,65 @@ class PotionLabClient:
         )
         self.token = token or os.getenv("POTIONLAB_API_TOKEN")
         self.timeout = 5
+        # Most recent error from a mutating call, for surfacing in UIs.
+        self.last_error: str | None = None
+
+    def set_token(self, token: str | None) -> None:
+        self.token = token
 
     def _auth_headers(self) -> dict[str, str]:
         if not self.token:
             return {}
         return {"Authorization": f"Bearer {self.token}"}
+
+    @staticmethod
+    def _extract_error(exc: httpx.HTTPError) -> str:
+        """Best-effort, human-readable error message from an httpx failure."""
+        response = getattr(exc, "response", None)
+        if response is not None:
+            try:
+                body = response.json()
+            except ValueError:
+                body = None
+            detail = None
+            if isinstance(body, dict):
+                detail = body.get("detail") or body.get("message")
+                if isinstance(detail, list):  # FastAPI validation errors
+                    detail = "; ".join(
+                        f"{'.'.join(str(p) for p in item.get('loc', []))}: "
+                        f"{item.get('msg', '')}"
+                        for item in detail
+                        if isinstance(item, dict)
+                    )
+            if detail:
+                return f"HTTP {response.status_code}: {detail}"
+            return f"HTTP {response.status_code}: {response.text[:200]}"
+        return str(exc) or exc.__class__.__name__
+
+    def login(self, username: str, password: str) -> str | None:
+        """Exchange credentials for a JWT and remember it on the client.
+
+        Returns the access token on success, or ``None`` on failure (with
+        ``last_error`` populated).
+        """
+        self.last_error = None
+        try:
+            with httpx.Client(timeout=self.timeout, follow_redirects=True) as client:
+                response = client.post(
+                    f"{self.base_url}/api/v1/auth/token",
+                    json={"username": username, "password": password},
+                )
+                response.raise_for_status()
+                token = response.json().get("access_token")
+                if not token:
+                    self.last_error = "Auth response missing access_token"
+                    return None
+                self.token = token
+                return token
+        except httpx.HTTPError as e:
+            self.last_error = self._extract_error(e)
+            logger.warning(f"Login failed: {self.last_error}")
+            return None
 
     def list_cocktails(self) -> list[dict[str, Any]]:
         try:
@@ -46,6 +100,7 @@ class PotionLabClient:
             return None
 
     def create_cocktail(self, data: dict[str, Any]) -> dict[str, Any] | None:
+        self.last_error = None
         try:
             with httpx.Client(timeout=self.timeout, follow_redirects=True) as client:
                 response = client.post(
@@ -56,7 +111,8 @@ class PotionLabClient:
                 response.raise_for_status()
                 return cast(dict[str, Any], response.json())
         except httpx.HTTPError as e:
-            logger.error(f"Failed to create cocktail: {e}")
+            self.last_error = self._extract_error(e)
+            logger.error(f"Failed to create cocktail: {self.last_error}")
             return None
 
     def list_ingredients(self) -> list[dict[str, Any]]:

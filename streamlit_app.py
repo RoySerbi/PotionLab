@@ -189,9 +189,51 @@ st.markdown(
 api_client = PotionLabClient()
 
 
+def _sync_client_token() -> None:
+    """Pull the auth token from session_state onto the shared client."""
+    api_client.set_token(st.session_state.get("auth_token"))
+
+
+def render_auth_sidebar() -> None:
+    """Login / logout widget. Mutating endpoints (POST/PUT/DELETE) need a token."""
+    with st.sidebar:
+        st.markdown("---")
+        if st.session_state.get("auth_token"):
+            user = st.session_state.get("auth_user", "user")
+            st.success(f"Signed in as **{user}**")
+            if st.button("Sign out", use_container_width=True):
+                for k in ("auth_token", "auth_user"):
+                    st.session_state.pop(k, None)
+                api_client.set_token(None)
+                st.rerun()
+            return
+
+        with st.expander("🔐 Sign in (required to create cocktails)", expanded=False):
+            st.caption(
+                "Default admin from the seed script: `admin` / `admin123`."
+            )
+            with st.form("login_form", clear_on_submit=False):
+                username = st.text_input("Username", value="admin")
+                password = st.text_input(
+                    "Password", value="admin123", type="password"
+                )
+                if st.form_submit_button("Sign in", use_container_width=True):
+                    token = api_client.login(username, password)
+                    if token:
+                        st.session_state.auth_token = token
+                        st.session_state.auth_user = username
+                        st.rerun()
+                    else:
+                        st.error(
+                            f"Login failed: {api_client.last_error or 'unknown error'}"
+                        )
+
+
 def main() -> None:
     st.title("🍹 PotionLab")
     st.markdown("**Cocktail Recipe Engine & Flavor Chemistry Workbench**")
+
+    _sync_client_token()
 
     with st.sidebar:
         st.markdown(
@@ -216,6 +258,8 @@ def main() -> None:
             label_visibility="collapsed",
         )
         page = page_options[selected_label]
+
+    render_auth_sidebar()
 
     if page == "Cocktail Browser":
         show_cocktail_browser()
@@ -507,6 +551,13 @@ def show_ingredient_explorer() -> None:
 def show_mix_cocktail() -> None:
     st.header("Mix a Cocktail")
 
+    if not st.session_state.get("auth_token"):
+        st.warning(
+            "You need to be signed in to create cocktails. "
+            "Use the **Sign in** panel in the sidebar "
+            "(default seed credentials: `admin` / `admin123`)."
+        )
+
     if "mix_form_key" not in st.session_state:
         st.session_state.mix_form_key = 0
 
@@ -679,9 +730,14 @@ def show_mix_cocktail() -> None:
                 st.session_state.mix_form_key += 1
                 st.rerun()
             else:
-                st.error(
-                    "Failed to create cocktail via API. Please check the server logs."
-                )
+                err = api_client.last_error or "unknown error"
+                if "401" in err or "403" in err:
+                    st.error(
+                        f"Failed to create cocktail — {err}. "
+                        "Sign in via the sidebar (admin / admin123) and try again."
+                    )
+                else:
+                    st.error(f"Failed to create cocktail: {err}")
 
 
 def get_ai_substitution(
