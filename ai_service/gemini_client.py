@@ -64,7 +64,7 @@ class GeminiClient:
         self._window_seconds: int = 60
         self._rate_limit_key: str = "ai:mixologist:requests"
         self._cache_ttl_seconds: int = 3600
-        self._model_name: str = "gemini-2.0-flash-exp"
+        self._model_name: str = "gemini-2.5-flash"
         self._redis_url: str = os.environ.get(
             "POTION_REDIS_URL", "redis://localhost:6379"
         )
@@ -75,7 +75,23 @@ class GeminiClient:
             client_class = cast(
                 Callable[..., _GeminiClient], getattr(genai_module, "Client")
             )
-            self._model = client_class(api_key=self._api_key)
+            # Opt-in escape hatch for corporate networks doing TLS interception:
+            # the container's CA bundle won't trust the rewritten Gemini cert,
+            # so the SDK fails with CERTIFICATE_VERIFY_FAILED. Setting
+            # POTION_AI_INSECURE_TLS=1 wires up an httpx client with
+            # verify=False for the SDK to use. Local dev only - never enable
+            # in production or CI.
+            client_kwargs: dict[str, object] = {"api_key": self._api_key}
+            if os.environ.get("POTION_AI_INSECURE_TLS") == "1":
+                httpx_module = importlib.import_module("httpx")
+                http_options_class = getattr(genai_module.types, "HttpOptions")
+                client_kwargs["http_options"] = http_options_class(
+                    httpx_client=httpx_module.Client(verify=False, timeout=60),
+                    httpx_async_client=httpx_module.AsyncClient(
+                        verify=False, timeout=60
+                    ),
+                )
+            self._model = client_class(**client_kwargs)
 
     def _read_api_key(self) -> str:
         fallback = os.environ.get("GOOGLE_API_KEY", "")

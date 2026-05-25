@@ -61,6 +61,7 @@ services:
     environment:
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
       - POTION_REDIS_URL=redis://redis:6379
+      - POTION_AI_INSECURE_TLS=${POTION_AI_INSECURE_TLS:-0}
     depends_on:
       redis:
         condition: service_healthy
