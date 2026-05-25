@@ -201,11 +201,10 @@ print_success "Authentication successful"
 
 print_header "Step 5: Browsing Cocktail Collection"
 
-print_info "Fetching all cocktails from the API (requires authentication)..."
-print_command "curl -X GET ${API_BASE}/api/v1/cocktails (with JWT token)"
+print_info "Fetching all cocktails from the API (public GET, no auth required)..."
+print_command "curl -X GET ${API_BASE}/api/v1/cocktails"
 
-COCKTAILS=$(curl -s "${API_BASE}/api/v1/cocktails" \
-    -H "Authorization: Bearer ${TOKEN}")
+COCKTAILS=$(curl -s "${API_BASE}/api/v1/cocktails")
 TOTAL=$(echo "$COCKTAILS" | jq -r 'length' 2>/dev/null)
 
 if [ -n "$TOTAL" ] && [ "$TOTAL" != "null" ] && [ "$TOTAL" -gt 0 ] 2>/dev/null; then
