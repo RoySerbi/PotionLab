@@ -1,5 +1,7 @@
 # PotionLab — Cocktail Recipe Engine & Flavor Chemistry Workbench
 
+[![CI](https://github.com/EASS-HIT-PART-A-2026-CLASS-IX/PotionLab/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/EASS-HIT-PART-A-2026-CLASS-IX/PotionLab/actions/workflows/ci.yml)
+
 PotionLab is a specialized backend service for mixologists and flavor scientists. It manages cocktail recipes, ingredients, and complex flavor profiles, allowing for sophisticated beverage management and flavor chemistry analysis.
 
 ## Prerequisites
@@ -113,33 +115,9 @@ PotionLab is a specialized backend service for mixologists and flavor scientists
    uv run streamlit run streamlit_app.py
    ```
 
-## Setup
-
-1. **Install dependencies**:
-   ```bash
-   uv sync
-   ```
-
-2. **Configure environment**:
-   ```bash
-   cp .env.example .env
-   mkdir -p data
-   ```
-
-## Running the Application
-
-### Start the API Server
-Run the FastAPI application with Uvicorn:
-```bash
-uv run uvicorn app.main:app --reload --app-dir src
-```
-The API will be available at `http://localhost:8000`.
-
-### Seed the Database
-Populate the database with a curated selection of 22 cocktails and their ingredients:
-```bash
-uv run python scripts/seed.py
-```
+   > Note: `--app-dir src` is technically redundant because `uv sync`
+   > installs the package in editable mode, but it makes the import path
+   > explicit and works in either case.
 
 ## API Endpoints
 
@@ -243,7 +221,7 @@ Ensure these variables are set in your `.env` file (see `.env.example`):
 
 ## Testing
 
-Run the full test suite (48 tests covering CRUD operations and business logic):
+Run the full test suite (**122 tests** covering CRUD operations, JWT auth, role-based authorization, the async refresh worker, and the AI service):
 ```bash
 uv run pytest -q
 ```
