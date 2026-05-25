@@ -85,15 +85,15 @@ jobs:
           #   report but do not fail the build.
           # --max-examples replaces the renamed --hypothesis-max-examples flag
           #   that was removed in Schemathesis 4.x.
-          # --suppress-health-check=filter_too_much: Hypothesis flags ops
-          #   like DELETE /auth/users/{username} where almost every randomly
-          #   generated username is filtered out. That's a data-generation
-          #   quirk, not an API bug, so we silence it.
+          # --exclude-path-regex: DELETE /api/v1/auth/users/{username}
+          #   triggers a Hypothesis filter_too_much health check (random
+          #   usernames almost never match existing users). That's a
+          #   data-generation quirk, not an API bug, so skip the operation.
           uv tool run --from schemathesis schemathesis run \
             --checks not_a_server_error \
             --max-examples=15 \
             --workers=2 \
-            --suppress-health-check=filter_too_much \
+            --exclude-path-regex='/auth/users/' \
             -H "Authorization: Bearer ${TOKEN}" \
             http://localhost:8000/openapi.json
 
