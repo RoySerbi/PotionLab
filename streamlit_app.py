@@ -569,7 +569,6 @@ def show_mix_cocktail() -> None:
     if "success_cocktail" in st.session_state:
         cocktail = st.session_state.success_cocktail
         st.success(f"Successfully mixed cocktail: {cocktail['name']}!")
-        st.json(cocktail)
         del st.session_state.success_cocktail
 
     available_ingredients = api_client.list_ingredients()
