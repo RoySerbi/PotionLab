@@ -2,7 +2,9 @@
 
 [![CI](https://github.com/EASS-HIT-PART-A-2026-CLASS-IX/PotionLab/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/EASS-HIT-PART-A-2026-CLASS-IX/PotionLab/actions/workflows/ci.yml)
 
-PotionLab is a specialized backend service for mixologists and flavor scientists. It manages cocktail recipes, ingredients, and complex flavor profiles, allowing for sophisticated beverage management and flavor chemistry analysis.
+PotionLab is a full-stack cocktail recipe engine packaged as a five-service local stack: a **FastAPI** backend (CRUD + JWT/RBAC + rate limiting), **PostgreSQL** for persistence, **Redis** for caching and async idempotency, a separate **AI Mixologist** microservice powered by **Google Gemini**, and a **Streamlit** dashboard. An async refresh worker (`scripts/refresh.py`) fans out AI calls with bounded concurrency, retries, and Redis-backed idempotency. Everything is orchestrated by a single `docker compose up`; the test suite covers CRUD, auth, RBAC, the async worker, and a live Schemathesis contract pass in CI.
+
+The chosen domain is mixology: the API manages cocktails, ingredients, and flavor profiles; the dashboard ships a "What Can I Make?" pantry matcher; the AI service generates new recipes and suggests substitutions.
 
 ## For Graders
 
@@ -25,7 +27,8 @@ PotionLab is a specialized backend service for mixologists and flavor scientists
 
 1. **Clone and navigate to the project**:
    ```bash
-   cd /path/to/PotionLab
+   git clone https://github.com/EASS-HIT-PART-A-2026-CLASS-IX/PotionLab.git
+   cd PotionLab
    ```
 
 2. **Set up environment variables**:
@@ -53,7 +56,7 @@ PotionLab is a specialized backend service for mixologists and flavor scientists
 6. **Verify the stack is working**:
    ```bash
    curl http://localhost:8000/health          # → {"status":"ok","redis":"connected"}
-   curl http://localhost:8001/health          # → {"status":"ok"}
+   curl http://localhost:8001/health          # → {"status":"ok","service":"ai-mixologist"}
    curl http://localhost:8000/api/v1/cocktails  # public GET, no auth
    ```
 
@@ -71,14 +74,18 @@ PotionLab is a specialized backend service for mixologists and flavor scientists
      -d '{"name":"Test","instructions":"Stir"}'
    ```
 
-   See `docs/EX3-notes.md` for the full security model and the rate-limit
-   contract (60 requests / minute / client IP).
+   See [`docs/EX3-notes.md`](docs/EX3-notes.md) for the full security model
+   and the rate-limit contract (60 requests / minute / client IP).
 
-7. **Optional: Start Streamlit dashboard**:
+7. **Open the Streamlit dashboard** at <http://localhost:8501> — it is
+   already running as a Compose service; no extra command needed.
+
+8. **One-command end-to-end smoke test** (optional but recommended for graders):
    ```bash
-   uv run streamlit run streamlit_app.py
+   bash scripts/demo.sh
    ```
-   Dashboard will be available at http://localhost:8501
+   This walks through health checks, auth, a JWT-protected mutation,
+   the AI Mixologist, and the async refresh worker in a single run.
 
 ### Option 2: Local Development (Without Docker)
 
@@ -132,7 +139,7 @@ The API is versioned under `/api/v1/`.
 
 | Method | Path | Description |
 | :--- | :--- | :--- |
-| **GET** | `/health` | Liveness check (returns `{"status": "ok"}`) |
+| **GET** | `/health` | Liveness check (returns `{"status":"ok","redis":"connected"}`) |
 | **POST** | `/api/v1/flavor-tags/` | Create a new flavor profile tag |
 | **GET** | `/api/v1/flavor-tags/` | List all available flavor tags |
 | **GET** | `/api/v1/flavor-tags/{id}` | Get detailed flavor tag information |
@@ -149,12 +156,13 @@ The API is versioned under `/api/v1/`.
 | **PUT** | `/api/v1/cocktails/{id}` | Update cocktail recipe or metadata |
 | **DELETE** | `/api/v1/cocktails/{id}` | Remove a cocktail from the library |
 
-## EX2: Streamlit Dashboard
+## Streamlit Dashboard
 
-The Streamlit dashboard provides a visual interface for the PotionLab API, enabling flavor discovery and recipe management.
+The Streamlit dashboard provides a visual interface for the PotionLab API, enabling flavor discovery and recipe management. In the Docker Compose stack (Option 1 above) it runs automatically as the `streamlit` service on <http://localhost:8501> — no extra command needed.
 
-### Launching the Application
-To run the full stack, you'll need two terminal windows:
+### Running the dashboard locally (without Docker)
+
+If you are following Option 2 (local development), launch the API and Streamlit in two terminals:
 
 ```bash
 # Terminal 1: Start the Backend API
@@ -194,16 +202,16 @@ The full PotionLab stack is containerized using Docker Compose, providing a robu
 
 See the [Quick Start](#quick-start) guide above for complete setup instructions.
 
-To start all services (API, AI Service, Postgres, Redis):
+To start all services (API, AI Service, Postgres, Redis, Streamlit):
 
 ```bash
 docker compose up --build -d
 ```
 
 The services will be available at:
-- **API**: `http://localhost:8000`
-- **AI Mixologist**: `http://localhost:8001`
-- **Streamlit Dashboard**: `http://localhost:8501` (Run via `uv run streamlit run streamlit_app.py`)
+- **API**: <http://localhost:8000>
+- **AI Mixologist**: <http://localhost:8001>
+- **Streamlit Dashboard**: <http://localhost:8501> (runs automatically as a Compose service)
 
 ### Environment Variables
 
@@ -257,7 +265,7 @@ An `examples.http` file is provided for use with the [VS Code REST Client](https
 
 **Database connection errors:**
 - Wait 30 seconds after `docker compose up` for PostgreSQL to initialize
-- Verify POSTGRES_PASSWORD matches in .env and compose.yaml
+- Verify `POSTGRES_PASSWORD` is set in `.env` — `compose.yaml` reads it via env substitution, so you do **not** need to edit `compose.yaml` itself.
 
 ### Local Development Issues
 

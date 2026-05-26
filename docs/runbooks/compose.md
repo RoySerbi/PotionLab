@@ -57,11 +57,11 @@ docker compose exec api python scripts/seed.py
 ```bash
 # Backend API liveness
 curl -s http://localhost:8000/health
-# {"status":"ok"}
+# {"status":"ok","redis":"connected"}
 
 # AI Mixologist liveness
 curl -s http://localhost:8001/health
-# {"status":"ok"}
+# {"status":"ok","service":"ai-mixologist"}
 
 # Postgres ready
 docker compose exec db pg_isready -U postgres
