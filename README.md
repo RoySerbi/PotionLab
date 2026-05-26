@@ -279,13 +279,15 @@ An `examples.http` file is provided for use with the [VS Code REST Client](https
 
 ## AI Assistance
 
-This project was developed using AI-assisted engineering practices. 
+This project was developed with the help of AI (Claude Code).
 
-- **Architectural Design**: AI was used to draft the initial SQLModel schema and many-to-many relationship structures.
-- **Implementation**: Core service logic, FastAPI route handlers, and the Streamlit UI (including Plotly visualizations and dynamic forms) were generated and refined based on project-specific requirements.
-- **AI Mixologist Microservice**: A standalone FastAPI microservice (`ai_service/`) was developed with Google Gemini integration for sophisticated cocktail recipe generation and ingredient substitutions.
-- **Testing**: The comprehensive test suite was automated to ensure high coverage and edge-case handling.
-- **Documentation**: This README and the API documentation were drafted with AI assistance to ensure clarity and adherence to submission guidelines.
+AI was used as a pair-programming assistant throughout the project — every design decision, architectural choice, and final implementation was made and reviewed by me. The AI accelerated specific tasks but did not replace the engineering work:
 
-All AI-generated code has been manually reviewed, tested, and integrated into the final PotionLab service.
+- **Architectural design**: I decided on the five-service topology (FastAPI + Postgres + Redis + AI microservice + Streamlit), the SQLModel schema, the many-to-many relationships, and the JWT/RBAC model. AI helped me sketch initial drafts and discuss trade-offs, which I then evaluated and adapted to the project's requirements.
+- **Implementation**: I wrote and directed the code structure. AI assisted with boilerplate, repetitive route handlers, and Streamlit/Plotly snippets, which I then read, modified, debugged, and integrated. Anything that did not fit the project was rewritten or discarded.
+- **AI Mixologist microservice**: The decision to expose Gemini behind a separate FastAPI process (rather than embedding it in the main API) is mine. AI helped me with the Google `genai` client wiring and prompt scaffolding; I designed the request/response contract and the failure-handling strategy.
+- **Testing**: I defined what needed to be tested (CRUD happy paths, JWT expiry, RBAC negative cases, bounded concurrency in the refresh worker, idempotency contracts). AI helped me write the test bodies faster; I ran them, fixed the failures, and added the cases AI missed.
+- **Documentation**: AI helped me draft and tighten this README, the EX3 notes, and the compose runbook. The content — what to document, which trade-offs to surface, what a grader needs — is mine.
+
+Every AI-generated line was read, run, and verified locally before being committed. The architecture, the trade-offs, and the bugs are all mine; the AI was a faster keyboard, not the author.
 
