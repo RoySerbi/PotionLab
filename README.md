@@ -4,6 +4,13 @@
 
 PotionLab is a specialized backend service for mixologists and flavor scientists. It manages cocktail recipes, ingredients, and complex flavor profiles, allowing for sophisticated beverage management and flavor chemistry analysis.
 
+## For Graders
+
+- **End-to-end demo video:** [`docs/demo.webm`](docs/demo.webm) — full walkthrough of the Compose stack, JWT auth, Streamlit dashboard, AI Mixologist, and the async refresh worker.
+- **EX3 engineering notes:** [`docs/EX3-notes.md`](docs/EX3-notes.md) — service topology, Redis trace excerpt, JWT rotation runbook, rate-limit contract, and enhancement details.
+- **Compose runbook:** [`docs/runbooks/compose.md`](docs/runbooks/compose.md) — launch / verify / debug / tear down.
+- **Final submission tag:** [`ex3-final`](https://github.com/EASS-HIT-PART-A-2026-CLASS-IX/PotionLab/releases/tag/ex3-final).
+
 ## Prerequisites
 
 - Python 3.12+

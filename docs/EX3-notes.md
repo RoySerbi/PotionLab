@@ -199,3 +199,15 @@ Run it from the repo root:
 ```bash
 bash scripts/demo.sh
 ```
+
+## 6. End-to-end demo recording
+
+A full screen capture of the stack in action is committed at [`docs/demo.webm`](demo.webm). It walks through:
+
+1. `docker compose up --build -d` and waiting for every service to report `healthy`.
+2. Seeding the database (`scripts/seed.py`) and exercising both public `GET` routes and JWT-protected mutations via `curl`.
+3. The Streamlit dashboard: Cocktail Browser, Ingredient Explorer, "Mix a Cocktail", and the "What Can I Make?" pantry matcher.
+4. The AI Mixologist microservice generating a recipe via `/mix`.
+5. Running `scripts/refresh.py` and inspecting the resulting Redis state with `redis-cli MONITOR` — both the first pass (writes) and a second pass (idempotency short-circuit).
+
+> The clip is slightly longer than the rubric's 2-minute suggestion; this was approved by the instructor in advance.
